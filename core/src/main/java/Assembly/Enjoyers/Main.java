@@ -7,6 +7,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 
 /** {@link com.badlogic.gdx.ApplicationListener} implementation shared by all platforms. */
@@ -32,6 +33,17 @@ public class Main extends ApplicationAdapter {
         if(Gdx.input.isTouched()) {
             camera.translate(-Gdx.input.getDeltaX(), Gdx.input.getDeltaY());
             camera.update();
+        }
+
+        if(Gdx.input.justTouched()){
+            Vector3 pos = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+            TileTyped type = gameMap.getTileTypeByLocation(1, pos.x, pos.y);
+
+            if(type != null) {
+                System.out.println("Clicked on tile: " + type.getId() + " " + type.getName() + " " + type.isCollidable());
+            } else {
+                System.out.println("No tile found at: " + pos.x + ", " + pos.y);
+            }
         }
 
         gameMap.render(camera);

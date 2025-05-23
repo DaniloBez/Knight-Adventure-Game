@@ -34,22 +34,31 @@ public class TiledGameMap extends GameMap {
 
     @Override
     public TileTyped getTileTypeByCoordinate(int layer, int col, int row) {
+        TiledMapTileLayer.Cell cell = ((TiledMapTileLayer) tiledMap.getLayers().get(layer)).getCell(col, row);
 
+        if(cell != null) {
+            TiledMapTile tile = cell.getTile();
+
+            if(tile != null) {
+                int id = tile.getId();
+                return TileTyped.getTileTypeById(id);
+            }
+        }
         return null;
     }
 
     @Override
     public int getWidth() {
-        return 0;
+        return ((TiledMapTileLayer) tiledMap.getLayers().get(0)).getWidth();
     }
 
     @Override
     public int getHeight() {
-        return 0;
+        return ((TiledMapTileLayer) tiledMap.getLayers().get(0)).getHeight();
     }
 
     @Override
     public int getLayers() {
-        return 0;
+        return tiledMap.getLayers().getCount();
     }
 }

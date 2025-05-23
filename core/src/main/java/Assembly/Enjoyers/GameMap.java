@@ -8,7 +8,7 @@ public abstract class GameMap {
     public abstract void dispose();
 
     public TileTyped getTileTypeByLocation(int layer, float x, float y) {
-        return this.getTileTypeByCoordinate(layer, (int) (x / TileTyped.TILE_TYPE_COUNT), (int) (y / TileTyped.TILE_TYPE_COUNT));
+        return this.getTileTypeByCoordinate(layer, (int) (x / TileTyped.TILE_SIZE), (int) (y / TileTyped.TILE_SIZE));
     }
 
     public abstract TileTyped getTileTypeByCoordinate(int layer, int col, int row);
