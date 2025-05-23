@@ -15,6 +15,10 @@ import java.util.List;
 
 import static com.badlogic.gdx.Gdx.gl;
 
+/**
+ * Клас Main є точкою входу для гри, реалізованої з використанням libGDX.
+ * Відповідає за створення камери, сцен, персонажа, об'єктів та рендер сцени.
+ */
 public class Main implements ApplicationListener {
 
     private SpriteBatch batch;
@@ -26,6 +30,9 @@ public class Main implements ApplicationListener {
     private Sprite wallSprite2;
     private List<Rectangle> bounds;
 
+    /**
+     * Ініціалізація об'єктів сцени, персонажа, камери, спрайтів та колізій.
+     */
     @Override
     public void create() {
         camera = new OrthographicCamera();
@@ -51,11 +58,17 @@ public class Main implements ApplicationListener {
         bounds.add(new Rectangle(1700f, 0f, 200f, 2000f));
     }
 
+    /**
+     * Оновлює розміри viewport при зміні розміру вікна.
+     */
     @Override
     public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
 
+    /**
+     * Основний метод рендеру, викликається кожен кадр. Оновлює камеру, очищає екран і малює всі об'єкти.
+     */
     @Override
     public void render() {
         character.move(bounds);
@@ -77,6 +90,9 @@ public class Main implements ApplicationListener {
         character.drawStaminaBar(camera);
     }
 
+    /**
+     * Відповідає за малювання всіх спрайтів у грі (платформа, стіни, гравець).
+     */
     private void draw() {
         floorSprite.draw(batch);
         wallSprite1.draw(batch);
@@ -86,16 +102,16 @@ public class Main implements ApplicationListener {
 
     @Override
     public void pause() {
-
+        // Нічого не реалізовано
     }
 
     @Override
     public void resume() {
-
+        // Нічого не реалізовано
     }
 
     @Override
     public void dispose() {
-
+        // Нічого не реалізовано
     }
 }
