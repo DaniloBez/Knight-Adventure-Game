@@ -22,6 +22,9 @@ public class Main extends ApplicationAdapter {
 
         camera = new OrthographicCamera();
         camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.position.set(113f, 436f, 0f);
+        camera.zoom = 0.35f;
+
         camera.update();
 
         gameMap = new TiledGameMap();
