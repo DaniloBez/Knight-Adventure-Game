@@ -1,11 +1,13 @@
 package Assembly.Enjoyers;
 
 import com.badlogic.gdx.ApplicationListener;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
@@ -20,7 +22,7 @@ import static com.badlogic.gdx.Gdx.gl;
  * Відповідає за створення камери, сцен, персонажа, об'єктів та рендер сцени.
  */
 public class Main implements ApplicationListener {
-
+    //region variables
     private SpriteBatch batch;
     private Viewport viewport;
     private OrthographicCamera camera;
@@ -29,6 +31,7 @@ public class Main implements ApplicationListener {
     private Sprite wallSprite1;
     private Sprite wallSprite2;
     private List<Rectangle> bounds;
+    //endregion
 
     /**
      * Ініціалізація об'єктів сцени, персонажа, камери, спрайтів та колізій.
@@ -87,6 +90,7 @@ public class Main implements ApplicationListener {
         draw();
         batch.end();
 
+        character.drawHitBox(camera);
         character.drawStaminaBar(camera);
     }
 
@@ -97,7 +101,8 @@ public class Main implements ApplicationListener {
         floorSprite.draw(batch);
         wallSprite1.draw(batch);
         wallSprite2.draw(batch);
-        character.sprite.draw(batch);
+        TextureRegion currentPlayerFrame = character.getFrame(Gdx.graphics.getDeltaTime());
+        batch.draw(currentPlayerFrame, character.sprite.getX(), character.sprite.getY(), character.sprite.getWidth(), character.sprite.getHeight());
     }
 
     @Override
