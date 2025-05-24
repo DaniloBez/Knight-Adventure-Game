@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -15,10 +16,15 @@ import static com.badlogic.gdx.Gdx.graphics;
 import static com.badlogic.gdx.Gdx.input;
 
 public class Character {
+    //region variables
     // --- Sprite ---
     private Texture texture;
     public Sprite sprite;
     private Rectangle hitBox;
+    private final float hitBoxXOffset = 50f;
+    private final float hitBoxYOffset = 18f;
+    private PlayerState currentState = PlayerState.IDLE;
+    private final CharacterAnimationManager animationManager = new CharacterAnimationManager();
 
     // --- Basic movement ---
     private float velocityY = 0;
@@ -26,6 +32,7 @@ public class Character {
     private final float gravity = -1200f;
     private final float moveSpeed = 600f;
     private final float jumpForce = 600f;
+    public boolean facingRight = false;
 
     // --- Walls ---
     private boolean onGround = false;
@@ -46,16 +53,29 @@ public class Character {
 
     // --- UI ---
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
+    //endregion
 
     /**
      * Конструктор персонажа, ініціалізує текстуру, спрайт та хитбокс.
      */
     Character(){
-        texture = new Texture("player\\knight_green_idle_01.png");
+        texture = new Texture("player\\adventurer-idle-01.png");
         sprite = new Sprite(texture);
-        sprite.setSize(texture.getWidth() * 10, texture.getHeight() * 10);
+        sprite.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
         sprite.setPosition(0, 300);
         hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
+    }
+
+    /**
+     * Малює прямокутник хитбоксу навколо персонажа для відлагодження.
+     * @param camera активна ігрова камера
+     */
+    public void drawHitBox(OrthographicCamera camera) {
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.RED);
+        shapeRenderer.rect(hitBox.x, hitBox.y, hitBox.width, hitBox.height);
+        shapeRenderer.end();
     }
 
     /**
@@ -64,6 +84,8 @@ public class Character {
      */
     public void move(List<Rectangle> bounds) {
         float delta = graphics.getDeltaTime();
+
+        currentState = PlayerState.IDLE;
 
         float moveX = handleHorizontalInput(delta);
         applyGravity(delta);
@@ -74,11 +96,34 @@ public class Character {
         if (onGround) resetDashAndStamina();
 
         touchingWall = checkWallTouching(bounds);
+        if (touchingWall) currentState = PlayerState.WALL_SLIDING;
         handleJump(bounds);
         handleWallInteraction(bounds, delta);
 
         applyVerticalMovement(bounds, delta);
         applyHorizontalMovement(moveX, bounds, delta);
+
+        if(currentState != PlayerState.WALL_CLIMBING && currentState != PlayerState.WALL_SLIDING && currentState != PlayerState.WALL_GRABBING) {
+            if ((dashXVelocity != 0 || dashYVelocity != 0))
+                currentState = PlayerState.DASHING;
+            else if (!onGround)
+                currentState = velocityY > 0 ? PlayerState.JUMPING : PlayerState.FALLING;
+            else if (moveX != 0)
+                currentState = PlayerState.RUNNING;
+            else
+                currentState = PlayerState.IDLE;
+        }
+    }
+
+    /**
+     * Повертає поточний кадр анімації відповідно до стану гравця.
+     * Використовується для відображення анімованого спрайту.
+     *
+     * @param delta час між кадрами
+     * @return TextureRegion відповідного кадру анімації
+     */
+    public TextureRegion getFrame(float delta) {
+        return animationManager.getCurrentFrame(currentState, facingRight, delta);
     }
 
     /**
@@ -88,6 +133,17 @@ public class Character {
      * @param delta Проміжок часу між поточним та останнім кадром у секундах.
      */
     private void applyHorizontalMovement(float moveX, List<Rectangle> bounds, float delta) {
+        Rectangle futureHitBox = new Rectangle(hitBox);
+        futureHitBox.x += (velocityX + dashXVelocity) * delta;
+
+        for (Rectangle bound : bounds) {
+            if (futureHitBox.overlaps(bound)) {
+                dashXVelocity = 0;
+                velocityX = 0;
+                return;
+            }
+        }
+
         if (Math.abs(velocityX) > 600) {
             sprite.translateX((velocityX + dashXVelocity) * delta);
             velocityX *= 0.95f;
@@ -100,9 +156,9 @@ public class Character {
         for (Rectangle bound : bounds) {
             if (hitBox.overlaps(bound)) {
                 if (moveX > 0)
-                    sprite.setX(bound.x - hitBox.width);
+                    sprite.setX(bound.x - hitBox.width - hitBoxXOffset);
                 else if (moveX < 0)
-                    sprite.setX(bound.x + bound.width);
+                    sprite.setX(bound.x + bound.width - hitBoxXOffset);
 
                 dashXVelocity = 0;
                 updateHitBox();
@@ -117,14 +173,25 @@ public class Character {
      * @param delta Проміжок часу між поточним та останнім кадром у секундах.
      */
     private void applyVerticalMovement(List<Rectangle> bounds, float delta) {
+        Rectangle futureHitBox = new Rectangle(hitBox);
+        futureHitBox.y += (velocityY + dashYVelocity) * delta;
+
+        for (Rectangle bound : bounds) {
+            if (futureHitBox.overlaps(bound)) {
+                dashYVelocity = 0;
+                velocityY = 0;
+                return;
+            }
+        }
+
         sprite.translateY((velocityY + dashYVelocity) * delta);
         updateHitBox();
         for (Rectangle bound : bounds) {
             if (hitBox.overlaps(bound)) {
                 if (velocityY > 0) {
-                    sprite.setY(bound.y - hitBox.height);
+                    sprite.setY(bound.y - hitBox.height - hitBoxYOffset);
                 } else if (velocityY < 0) {
-                    sprite.setY(bound.y + bound.height);
+                    sprite.setY(bound.y + bound.height - hitBoxYOffset);
                     onGround = true;
                 }
                 velocityY = 0;
@@ -143,12 +210,17 @@ public class Character {
     private void handleWallInteraction(List<Rectangle> bounds, float delta) {
         if (touchingWall && !onGround) {
             if (input.isButtonPressed(Input.Buttons.RIGHT) && stamina > 0) {
+                currentState = PlayerState.WALL_GRABBING;
 
                 if(velocityY <= 150) {
-                    if (input.isKeyPressed(Keys.W))
+                    if (input.isKeyPressed(Keys.W)) {
+                        currentState = PlayerState.WALL_CLIMBING;
                         velocityY = 150;
-                    else if (input.isKeyPressed(Keys.S))
+                    }
+                    else if (input.isKeyPressed(Keys.S)) {
+                        currentState = PlayerState.WALL_CLIMBING;
                         velocityY = -150;
+                    }
                     else if (velocityY < 0)
                         velocityY = 0;
                 }
@@ -216,8 +288,14 @@ public class Character {
      */
     private float handleHorizontalInput(float delta) {
         float moveX = 0;
-        if (input.isKeyPressed(Keys.A)) moveX -= moveSpeed * delta;
-        if (input.isKeyPressed(Keys.D)) moveX += moveSpeed * delta;
+        if (input.isKeyPressed(Keys.A)) {
+            moveX -= moveSpeed * delta;
+            facingRight = false;
+        }
+        if (input.isKeyPressed(Keys.D)) {
+            moveX += moveSpeed * delta;
+            facingRight = true;
+        }
         return moveX;
     }
 
@@ -241,7 +319,7 @@ public class Character {
         if(Math.abs(dashYVelocity) < 400)
             dashYVelocity = 0;
 
-        if(input.isButtonJustPressed(Input.Buttons.LEFT) && dashCount !=0 ){
+        if((input.isButtonJustPressed(Input.Buttons.LEFT) || input.isKeyJustPressed(Keys.SHIFT_LEFT) ) && dashCount !=0 ){
             if(input.isKeyPressed(Keys.D))
                 dashXVelocity = dashForce;
             if (input.isKeyPressed(Keys.A))
@@ -259,7 +337,7 @@ public class Character {
      * Оновлює координати прямокутника hitBox за позицією спрайта.
      */
     private void updateHitBox() {
-        hitBox.set(sprite.getX(), sprite.getY(), sprite.getWidth() - 50f, sprite.getHeight());
+        hitBox.set(sprite.getX() + hitBoxXOffset, sprite.getY(), sprite.getWidth() - 2 * hitBoxXOffset, sprite.getHeight() - hitBoxYOffset);
     }
 
     /**
