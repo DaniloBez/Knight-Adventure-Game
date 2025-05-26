@@ -1,4 +1,4 @@
-package Assembly.Enjoyers;
+package Assembly.Enjoyers.Map;
 
 import com.badlogic.gdx.graphics.OrthographicCamera;
 
