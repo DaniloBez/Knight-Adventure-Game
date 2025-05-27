@@ -57,7 +57,7 @@ public class PlayerSoundManager {
      * @param delta Проміжок часу між поточним та останнім кадром у секундах.
      */
     public void update(float delta) {
-        timers.replaceAll((e, _) -> timers.get(e) - delta);
+        timers.replaceAll((e, v) -> timers.get(e) - delta);
     }
 
     /**
