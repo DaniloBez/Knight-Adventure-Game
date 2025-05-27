@@ -1,5 +1,6 @@
 package Assembly.Enjoyers;
 
+import Assembly.Enjoyers.Player.Player;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -26,11 +27,12 @@ public class Main implements ApplicationListener {
     private SpriteBatch batch;
     private Viewport viewport;
     private OrthographicCamera camera;
-    private Character character;
+    private Player player;
     private Sprite floorSprite;
     private Sprite wallSprite1;
     private Sprite wallSprite2;
     private List<Rectangle> bounds;
+    private Sprite background;
     //endregion
 
     /**
@@ -41,7 +43,9 @@ public class Main implements ApplicationListener {
         camera = new OrthographicCamera();
         viewport = new FitViewport(1920, 1080, camera);
         batch = new SpriteBatch();
-        character = new Character();
+        player = new Player();
+
+        MusicManager.init();
 
         floorSprite = new Sprite(new Texture("temp\\floor.png"));
         floorSprite.setSize(10000f, 200f);
@@ -54,6 +58,9 @@ public class Main implements ApplicationListener {
         wallSprite2 = new Sprite(new Texture("temp\\wall.png"));
         wallSprite2.setSize(200f, 2000f);
         wallSprite2.setPosition(1700,  0);
+
+        background = new Sprite(new Texture("temp\\background.jpg"));
+        background.setSize(1920, 1080);
 
         bounds = new ArrayList<>();
         bounds.add(new Rectangle(-2000f, 0f, 10000f, 200f));
@@ -74,13 +81,14 @@ public class Main implements ApplicationListener {
      */
     @Override
     public void render() {
-        character.move(bounds);
+        player.move(bounds);
         camera.position.set(
-            character.sprite.getX() + character.sprite.getWidth() / 2,
-            character.sprite.getY() + character.sprite.getHeight(),
+            player.sprite.getX() + player.sprite.getWidth() / 2,
+            player.sprite.getY() + player.sprite.getHeight(),
             0
         );
         camera.update();
+        background.setPosition(camera.position.x - background.getWidth() / 2, camera.position.y - background.getHeight() / 2);
 
         gl.glClearColor(0, 0, 0, 1.0f);
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
@@ -90,33 +98,45 @@ public class Main implements ApplicationListener {
         draw();
         batch.end();
 
-        character.drawHitBox(camera);
-        character.drawStaminaBar(camera);
+        //player.drawHitBox(camera);
+        player.drawStaminaBar(camera);
     }
 
     /**
      * Відповідає за малювання всіх спрайтів у грі (платформа, стіни, гравець).
      */
     private void draw() {
+        background.draw(batch);
         floorSprite.draw(batch);
         wallSprite1.draw(batch);
         wallSprite2.draw(batch);
-        TextureRegion currentPlayerFrame = character.getFrame(Gdx.graphics.getDeltaTime());
-        batch.draw(currentPlayerFrame, character.sprite.getX(), character.sprite.getY(), character.sprite.getWidth(), character.sprite.getHeight());
+        TextureRegion currentPlayerFrame = player.getFrame(Gdx.graphics.getDeltaTime());
+        batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
     }
 
+    /**
+     * Метод паузи, що викликається коли вікно не активне
+     */
     @Override
     public void pause() {
-        // Нічого не реалізовано
+        MusicManager.pause();
     }
 
+    /**
+     * Метод, що поновлює гру, коли вікно знову стає активним
+     */
     @Override
     public void resume() {
-        // Нічого не реалізовано
+        MusicManager.resume();
     }
 
+    /**
+     * Метод, що прибирає сміття, коли об'єкт видаляється
+     */
     @Override
     public void dispose() {
-        // Нічого не реалізовано
+        batch.dispose();
+        MusicManager.dispose();
+        player.dispose();
     }
 }
