@@ -364,6 +364,10 @@ public class Player {
         }
     }
 
+    /**
+     * Повертає чи готовий гравець до наступного ривку.
+     * @return Повертає чи готовий гравець до наступного ривку.
+     */
     private boolean isDashReady(){
         return dashXVelocity == 0 && dashYVelocity == 0;
     }
