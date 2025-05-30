@@ -1,5 +1,7 @@
 package Assembly.Enjoyers.Player;
 
+import Assembly.Enjoyers.Map.GameMap;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
@@ -55,6 +57,11 @@ public class Player {
 
     // --- UI ---
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
+
+    // respawn
+    private float respawnX = 920;
+    private float respawnY = 450;
+
     //endregion
 
     /**
@@ -64,7 +71,7 @@ public class Player {
         texture = new Texture("player\\adventurer-idle-01.png");
         sprite = new Sprite(texture);
         sprite.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
-        sprite.setPosition(0, 300);
+        sprite.setPosition(respawnX, respawnY);
         hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
     }
 

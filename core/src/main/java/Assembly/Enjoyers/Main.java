@@ -1,17 +1,20 @@
 package Assembly.Enjoyers;
 
+import Assembly.Enjoyers.Map.GameMap;
+import Assembly.Enjoyers.Map.TileTyped;
+import Assembly.Enjoyers.Map.TiledGameMap;
 import Assembly.Enjoyers.Player.Player;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static com.badlogic.gdx.Gdx.gl;
@@ -26,11 +29,8 @@ public class Main implements ApplicationListener {
     private Viewport viewport;
     private OrthographicCamera camera;
     private Player player;
-    private Sprite floorSprite;
-    private Sprite wallSprite1;
-    private Sprite wallSprite2;
-    private List<Rectangle> bounds;
-    private Sprite background;
+    private List<Rectangle> bounds, spikes;
+    private GameMap gameMap;
     //endregion
 
     /**
@@ -41,29 +41,11 @@ public class Main implements ApplicationListener {
         camera = new OrthographicCamera();
         viewport = new FitViewport(1920, 1080, camera);
         batch = new SpriteBatch();
+        gameMap = new TiledGameMap();
+        bounds = gameMap.getCollisionRects();
+        spikes = gameMap.getSpikes();
         player = new Player();
-
         MusicManager.init();
-
-        floorSprite = new Sprite(new Texture("temp\\floor.png"));
-        floorSprite.setSize(10000f, 200f);
-        floorSprite.setPosition(-2000,  0);
-
-        wallSprite1 = new Sprite(new Texture("temp\\wall.png"));
-        wallSprite1.setSize(200f, 2000f);
-        wallSprite1.setPosition(1000,  500);
-
-        wallSprite2 = new Sprite(new Texture("temp\\wall.png"));
-        wallSprite2.setSize(200f, 2000f);
-        wallSprite2.setPosition(1700,  0);
-
-        background = new Sprite(new Texture("temp\\background.jpg"));
-        background.setSize(1920, 1080);
-
-        bounds = new ArrayList<>();
-        bounds.add(new Rectangle(-2000f, 0f, 10000f, 200f));
-        bounds.add(new Rectangle(1000f, 500f, 200f, 2000f));
-        bounds.add(new Rectangle(1700f, 0f, 200f, 2000f));
     }
 
     /**
@@ -82,21 +64,32 @@ public class Main implements ApplicationListener {
         player.move(bounds);
         camera.position.set(
             player.sprite.getX() + player.sprite.getWidth() / 2,
-            player.sprite.getY() + player.sprite.getHeight(),
+            player.sprite.getY() + 2*player.sprite.getHeight(),
             0
         );
         camera.update();
-        background.setPosition(camera.position.x - background.getWidth() / 2, camera.position.y - background.getHeight() / 2);
 
         gl.glClearColor(0, 0, 0, 1.0f);
         gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        if(Gdx.input.justTouched()){
+            Vector3 pos = camera.unproject(new Vector3(Gdx.input.getX(), Gdx.input.getY(), 0));
+            TileTyped type = gameMap.getTileTypeByLocation(3 , pos.x, pos.y);
+
+            if(type != null) {
+                System.out.println("Clicked on tile: " + type.getId() + " " + type.getName() + " " + type.isCollidable());
+            } else {
+                System.out.println("No tile found at: " + pos.x + ", " + pos.y);
+            }
+        }
+
+        gameMap.render(camera);
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         draw();
         batch.end();
 
-        //player.drawHitBox(camera);
         player.drawStaminaBar(camera);
     }
 
@@ -104,10 +97,6 @@ public class Main implements ApplicationListener {
      * Відповідає за малювання всіх спрайтів у грі (платформа, стіни, гравець).
      */
     private void draw() {
-        background.draw(batch);
-        floorSprite.draw(batch);
-        wallSprite1.draw(batch);
-        wallSprite2.draw(batch);
         TextureRegion currentPlayerFrame = player.getFrame(Gdx.graphics.getDeltaTime());
         batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
     }
@@ -133,6 +122,7 @@ public class Main implements ApplicationListener {
      */
     @Override
     public void dispose() {
+        gameMap.dispose();
         batch.dispose();
         MusicManager.dispose();
         player.dispose();
