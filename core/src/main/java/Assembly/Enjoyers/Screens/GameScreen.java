@@ -1,6 +1,8 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
+import Assembly.Enjoyers.Map.GameMap;
+import Assembly.Enjoyers.Map.TiledGameMap;
 import Assembly.Enjoyers.Utils.MusicManager;
 import Assembly.Enjoyers.Player.Player;
 import com.badlogic.gdx.*;
@@ -23,47 +25,40 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class GameScreen implements Screen {
+    //region variables
     private MainGame game;
+
     private Viewport viewport;
     private OrthographicCamera camera;
+
     private Player player;
-    private Sprite floorSprite, wallSprite1, wallSprite2, background;
-    private List<Rectangle> bounds;
+    private List<Rectangle> bounds, spikes;
+    private GameMap gameMap;
+
     private boolean isPaused = false;
 
     private Stage pauseStage;
     private Skin skin;
     private InputProcessor inputProcessor;
+    //endregion
 
     public GameScreen(MainGame game) {
         this.game = game;
+        setUpGame();
+
+        createUI();
+    }
+
+    private void setUpGame(){
         camera = new OrthographicCamera();
         viewport = new StretchViewport(1920, 1080, camera);
 
+        gameMap = new TiledGameMap();
+        bounds = gameMap.getCollisionRects();
+        spikes = gameMap.getSpikes();
+
         player = new Player();
         MusicManager.init();
-
-        floorSprite = new Sprite(new Texture("temp/floor.png"));
-        floorSprite.setSize(10000f, 200f);
-        floorSprite.setPosition(-2000,  0);
-
-        wallSprite1 = new Sprite(new Texture("temp/wall.png"));
-        wallSprite1.setSize(200f, 2000f);
-        wallSprite1.setPosition(1000,  500);
-
-        wallSprite2 = new Sprite(new Texture("temp/wall.png"));
-        wallSprite2.setSize(200f, 2000f);
-        wallSprite2.setPosition(1700,  0);
-
-        background = new Sprite(new Texture("temp/background.jpg"));
-        background.setSize(1920, 1080);
-
-        bounds = new ArrayList<>();
-        bounds.add(new Rectangle(-2000f, 0f, 10000f, 200f));
-        bounds.add(new Rectangle(1000f, 500f, 200f, 2000f));
-        bounds.add(new Rectangle(1700f, 0f, 200f, 2000f));
-
-        createUI();
     }
 
     private void createUI() {
@@ -116,29 +111,29 @@ public class GameScreen implements Screen {
 
     @Override
     public void render(float delta) {
+        delta = Math.min(delta, 1/60f);
+
         if(Gdx.input.isKeyJustPressed(Input.Keys.ESCAPE)) {
             if (isPaused) resume();
             else pause();
         }
 
         if (!isPaused) {
-            player.move(bounds);
+            player.move(bounds, spikes, delta);
 
             camera.position.set(
                 player.sprite.getX() + player.sprite.getWidth() / 2,
-                player.sprite.getY() + player.sprite.getHeight(),
+                player.sprite.getY() + 2 * player.sprite.getHeight(),
                 0
             );
             camera.update();
-            background.setPosition(
-                camera.position.x - background.getWidth() / 2,
-                camera.position.y - background.getHeight() / 2
-            );
         }
 
 
         Gdx.gl.glClearColor(0, 0, 0, 1.0f);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        gameMap.render(camera);
 
         viewport.apply();
         game.batch.setProjectionMatrix(camera.combined);
@@ -156,12 +151,9 @@ public class GameScreen implements Screen {
     }
 
     private void draw(float delta) {
-        background.draw(game.batch);
-        floorSprite.draw(game.batch);
-        wallSprite1.draw(game.batch);
-        wallSprite2.draw(game.batch);
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
+        player.drawCorpse(game.batch);
     }
 
     @Override public void resize(int width, int height) {
@@ -184,6 +176,7 @@ public class GameScreen implements Screen {
     @Override public void hide() {}
     @Override public void dispose() {
         player.dispose();
+        gameMap.dispose();
         MusicManager.dispose();
 
         game = null;
