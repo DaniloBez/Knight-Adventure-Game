@@ -1,6 +1,7 @@
 package Assembly.Enjoyers;
 
 import Assembly.Enjoyers.Player.Player;
+import Assembly.Enjoyers.Utils.MusicManager;
 import com.badlogic.gdx.ApplicationListener;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.GL20;
@@ -21,7 +22,11 @@ import static com.badlogic.gdx.Gdx.gl;
 /**
  * Клас Main є точкою входу для гри, реалізованої з використанням libGDX.
  * Відповідає за створення камери, сцен, персонажа, об'єктів та рендер сцени.
+ *
+ * @Deprecated
+ * Вже не використовуватиметься, слід використовувати {@link MainGame} або {@link Assembly.Enjoyers.Screens}
  */
+@Deprecated
 public class Main implements ApplicationListener {
     //region variables
     private SpriteBatch batch;
@@ -110,7 +115,7 @@ public class Main implements ApplicationListener {
         floorSprite.draw(batch);
         wallSprite1.draw(batch);
         wallSprite2.draw(batch);
-        TextureRegion currentPlayerFrame = player.getFrame(Gdx.graphics.getDeltaTime());
+        TextureRegion currentPlayerFrame = player.getFrame(Gdx.graphics.getDeltaTime(), false);
         batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
     }
 
