@@ -29,6 +29,7 @@ public class PlayerAnimationManager {
         animations.put(PlayerState.WALL_CLIMBING, loadAnimation("player/adventurer-ladder-climb-", 4, 0.2f));
         animations.put(PlayerState.WALL_SLIDING, loadAnimation("player/adventurer-wall-slide-", 2, 0.2f));
         animations.put(PlayerState.WALL_GRABBING, loadAnimation("player/adventurer-crnr-grb-", 4, 0.3f));
+        animations.put(PlayerState.DYING, loadAnimation("player/adventurer-die-", 7, 0.2f));
     }
 
     /**
@@ -75,6 +76,10 @@ public class PlayerAnimationManager {
      */
     public void resetStateTime() {
         stateTime = 0;
+    }
+
+    public float getAnimationDuration(PlayerState state) {
+        return animations.get(state).getAnimationDuration();
     }
 
     /**
