@@ -57,8 +57,10 @@ public class PlayerAnimationManager {
      * @param deltaTime    час між кадрами (для анімації)
      * @return поточний кадр анімації
      */
-    public TextureRegion getCurrentFrame(PlayerState state, boolean facingRight, float deltaTime) {
-        stateTime += deltaTime;
+    public TextureRegion getCurrentFrame(PlayerState state, boolean facingRight, float deltaTime, boolean paused) {
+        if (!paused)
+            stateTime += deltaTime;
+
         TextureRegion frame = animations.get(state).getKeyFrame(stateTime, true);
         if (!facingRight && !frame.isFlipX()) {
             frame.flip(true, false);
