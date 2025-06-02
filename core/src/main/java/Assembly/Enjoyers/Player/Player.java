@@ -440,8 +440,8 @@ public class Player {
     private boolean checkWallTouching(List<Rectangle> bounds) {
         Rectangle testX1 = new Rectangle(hitBox);
         Rectangle testX2 = new Rectangle(hitBox);
-        testX1.x += moveSpeed * graphics.getDeltaTime();
-        testX2.x -= moveSpeed * graphics.getDeltaTime();
+        testX1.x += 2;
+        testX2.x -= 2;
         for (Rectangle bound : bounds)
             if (testX1.overlaps(bound) || testX2.overlaps(bound))
                 return true;
