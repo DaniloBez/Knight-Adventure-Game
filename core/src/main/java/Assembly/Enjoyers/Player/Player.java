@@ -1,20 +1,18 @@
 package Assembly.Enjoyers.Player;
 
-import Assembly.Enjoyers.Map.GameMap;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.List;
 
-import static com.badlogic.gdx.Gdx.graphics;
 import static com.badlogic.gdx.Gdx.input;
 
 public class Player {
@@ -23,8 +21,8 @@ public class Player {
     private final Texture texture;
     public Sprite sprite;
     private Rectangle hitBox;
-    private final float hitBoxXOffset = 52f;
-    private final float hitBoxYOffset = 18f;
+    private final float hitBoxXOffset = 55f;
+    private final float hitBoxYOffset = 22f;
     private PlayerState currentState = PlayerState.IDLE;
     private final PlayerAnimationManager animationManager = new PlayerAnimationManager();
     private final PlayerSoundManager soundManager = new PlayerSoundManager();
@@ -49,8 +47,8 @@ public class Player {
     private boolean isDashing = false;
     private float dashXVelocity = 0;
     private float dashYVelocity = 0;
-    private final float dashForce = 2000f;
-    private final float dashDecay = 0.97f;
+    private final float dashForce = 1000f;
+    private final float dashDecay = 0.98f;
     private final float dashMinForce = 400f;
     private int dashCount = 1;
 
@@ -61,7 +59,7 @@ public class Player {
     // --- UI ---
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
-    // respawn
+    // --- Respawn ---
     private float respawnX = 920;
     private float respawnY = 450;
 
@@ -94,19 +92,15 @@ public class Player {
      * Основна функція оновлення руху та взаємодії з рівнем.
      * @param bounds список прямокутників колізій
      */
-    public void move(List<Rectangle> bounds) {
-        float delta = graphics.getDeltaTime();
+    public void move(List<Rectangle> bounds, List<Rectangle> spikes, float delta) {
         currentState = PlayerState.IDLE;
-        float moveX = 0;
 
         if (isDashing){
             dash();
         }
-        else{
-            moveX = handleHorizontalInput(delta);
-            dash();
-        }
 
+        float moveX = handleHorizontalInput(delta);
+        dash();
         applyGravity(delta);
 
         updateHitBox();
@@ -279,14 +273,14 @@ public class Player {
                 currentState = PlayerState.WALL_SLIDING;
             }
 
-            if(input.isKeyJustPressed(Keys.SPACE) && !input.isKeyPressed(Keys.W)){
+            if(input.isKeyJustPressed(Keys.SPACE) && !input.isKeyPressed(Keys.W) && stamina > 0){
                 if (checkRightTouching(bounds)) {
-                    if (lastWallRight && stamina > 0) {
+                    if (lastWallRight) {
                         velocityX = -wallJumpForceX;
                         velocityY = jumpForce;
                         stamina -= staminaDrain;
                     }
-                    else if(!lastWallRight) {
+                    else {
                         velocityX = -wallJumpForceX;
                         velocityY = jumpForce;
                     }
@@ -356,7 +350,6 @@ public class Player {
      * Обробляє деш у різні сторони (LMB), з лімітом на кількість.
      */
     private void dash(){
-
         if (isDashing) {
             dashXVelocity *= dashDecay;
             dashYVelocity *= dashDecay;
@@ -380,6 +373,11 @@ public class Player {
             if (dx == 0 && dy == 0)
                 dx = facingRight ? 1 : -1;
 
+            float len = (float) Math.sqrt(dx * dx + dy * dy);
+            if (len != 0) {
+                dx /= len;
+                dy /= len;
+            }
 
             dashXVelocity = dx * dashForce;
             dashYVelocity = dy * dashForce;
