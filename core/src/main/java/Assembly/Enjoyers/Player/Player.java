@@ -483,4 +483,8 @@ public class Player {
         texture.dispose();
         animationManager.dispose();
     }
+
+    public void stopSound(){
+        soundManager.playWallSlideRepeatable(false);
+    }
 }
