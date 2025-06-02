@@ -44,9 +44,12 @@ public class Player {
     private final float wallJumpForceX = 1200f;
 
     // --- Dash ---
+    private boolean isDashing = false;
     private float dashXVelocity = 0;
     private float dashYVelocity = 0;
-    private final float dashForce = 1000f;
+    private final float dashForce = 2000f;
+    private final float dashDecay = 0.97f;
+    private final float dashMinForce = 400f;
     private int dashCount = 1;
 
     // --- Stamina ---
@@ -86,12 +89,18 @@ public class Player {
      */
     public void move(List<Rectangle> bounds) {
         float delta = graphics.getDeltaTime();
-
         currentState = PlayerState.IDLE;
+        float moveX = 0;
 
-        float moveX = handleHorizontalInput(delta);
+        if (isDashing){
+            dash();
+        }
+        else{
+            moveX = handleHorizontalInput(delta);
+            dash();
+        }
+
         applyGravity(delta);
-        dash();
 
         updateHitBox();
         onGround = checkFeetTouching(bounds);
@@ -123,7 +132,7 @@ public class Player {
         soundManager.playWallSlideRepeatable(currentState == PlayerState.WALL_SLIDING);
 
         if(currentState != PlayerState.WALL_CLIMBING && currentState != PlayerState.WALL_SLIDING && currentState != PlayerState.WALL_GRABBING && currentState != PlayerState.JUMPING) {
-            if (!isDashReady())
+            if (isDashing)
                 currentState = PlayerState.DASHING;
             else if (!onGround)
                 currentState = velocityY > 0 ? PlayerState.JUMPING : PlayerState.FALLING;
@@ -340,36 +349,38 @@ public class Player {
      * Обробляє деш у різні сторони (LMB), з лімітом на кількість.
      */
     private void dash(){
-        dashXVelocity *= 0.98f;
-        dashYVelocity *= 0.98f;
 
-        if(Math.abs(dashXVelocity) < 400)
-            dashXVelocity = 0;
-        if(Math.abs(dashYVelocity) < 400)
-            dashYVelocity = 0;
+        if (isDashing) {
+            dashXVelocity *= dashDecay;
+            dashYVelocity *= dashDecay;
 
-        if((input.isButtonJustPressed(Input.Buttons.LEFT) || input.isKeyJustPressed(Keys.SHIFT_LEFT) ) && dashCount !=0 && isDashReady()){
-            if(input.isKeyPressed(Keys.D))
-                dashXVelocity = dashForce;
-            if (input.isKeyPressed(Keys.A))
-                dashXVelocity = -dashForce;
-            if (input.isKeyPressed(Keys.W))
-                dashYVelocity = dashForce;
-            if (input.isKeyPressed(Keys.S))
-                dashYVelocity = -dashForce;
+            if (Math.abs(dashXVelocity) < dashMinForce && Math.abs(dashYVelocity) < dashMinForce) {
+                dashXVelocity = 0;
+                dashYVelocity = 0;
+                isDashing = false;
+            }
+            return;
+        }
 
+        if ((input.isButtonJustPressed(Input.Buttons.LEFT) || input.isKeyJustPressed(Keys.SHIFT_LEFT))
+            && dashCount > 0 && !isDashing) {
+            float dx = 0, dy = 0;
+            if (input.isKeyPressed(Keys.D)) dx = 1;
+            if (input.isKeyPressed(Keys.A)) dx = -1;
+            if (input.isKeyPressed(Keys.W)) dy = 1;
+            if (input.isKeyPressed(Keys.S)) dy = -1;
+
+            if (dx == 0 && dy == 0)
+                dx = facingRight ? 1 : -1;
+
+
+            dashXVelocity = dx * dashForce;
+            dashYVelocity = dy * dashForce;
+            isDashing = true;
             dashCount--;
 
             soundManager.play(PlayerState.DASHING);
         }
-    }
-
-    /**
-     * Повертає чи готовий гравець до наступного ривку.
-     * @return Повертає чи готовий гравець до наступного ривку.
-     */
-    private boolean isDashReady(){
-        return dashXVelocity == 0 && dashYVelocity == 0;
     }
 
     /**
