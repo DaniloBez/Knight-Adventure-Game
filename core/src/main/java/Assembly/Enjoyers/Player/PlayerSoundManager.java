@@ -39,6 +39,8 @@ public class PlayerSoundManager {
         sounds.put(PlayerState.JUMPING, load("sounds\\jump.wav"));
         cooldowns.put(PlayerState.JUMPING, 0.3f);
 
+        sounds.put(PlayerState.DYING, load("sounds\\death.mp3"));
+
         for(PlayerState state : PlayerState.values())
             timers.put(state, 0f);
     }
