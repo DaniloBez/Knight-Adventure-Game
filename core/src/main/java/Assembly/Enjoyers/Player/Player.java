@@ -155,8 +155,8 @@ public class Player {
      * @param delta час між кадрами
      * @return TextureRegion відповідного кадру анімації
      */
-    public TextureRegion getFrame(float delta) {
-        return animationManager.getCurrentFrame(currentState, facingRight, delta);
+    public TextureRegion getFrame(float delta, boolean paused) {
+        return animationManager.getCurrentFrame(currentState, facingRight, delta, paused);
     }
 
     /**
