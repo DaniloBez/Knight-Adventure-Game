@@ -15,5 +15,6 @@ public enum PlayerState {
     WALL_SLIDING,
     WALL_GRABBING,
     ATTACKING,
-    DAMAGED
+    DAMAGED,
+    DYING
 }
