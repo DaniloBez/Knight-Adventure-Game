@@ -1,4 +1,4 @@
-package Assembly.Enjoyers;
+package Assembly.Enjoyers.Utils;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Music;
@@ -19,10 +19,10 @@ public class MusicManager {
         backgroundMusic.setVolume(0.02f);
         backgroundMusic.play();
 
-        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("music/wind.wav"));
-        backgroundMusic.setLooping(true);
-        backgroundMusic.setVolume(0.2f);
-        backgroundMusic.play();
+        windNoise = Gdx.audio.newMusic(Gdx.files.internal("music/wind.wav"));
+        windNoise.setLooping(true);
+        windNoise.setVolume(0.2f);
+        windNoise.play();
     }
 
     /**
