@@ -20,6 +20,7 @@ public class Player {
     // --- Sprite ---
     private final Texture texture;
     public Sprite sprite;
+    private Sprite corpse;
     private Rectangle hitBox;
     private final float hitBoxXOffset = 55f;
     private final float hitBoxYOffset = 22f;
@@ -63,17 +64,28 @@ public class Player {
     private float respawnX = 920;
     private float respawnY = 450;
 
+    // --- Death ---
+    private boolean isDead = false;
+    private float deathTimer = 0f;
+    private final float deathDelay;
+
     //endregion
 
     /**
      * Конструктор персонажа, ініціалізує текстуру, спрайт та хитбокс.
      */
     public Player(){
-        texture = new Texture("player\\adventurer-idle-01.png");
+        texture = new Texture("player\\adventurer-die-06.png");
         sprite = new Sprite(texture);
         sprite.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
         sprite.setPosition(respawnX, respawnY);
         hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
+
+        corpse = new Sprite(texture);
+        corpse.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
+        corpse.setAlpha(0);
+
+        deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
     }
 
     /**
@@ -95,8 +107,25 @@ public class Player {
     public void move(List<Rectangle> bounds, List<Rectangle> spikes, float delta) {
         currentState = PlayerState.IDLE;
 
-        if (isDashing){
-            dash();
+        if (isDead) {
+            currentState = PlayerState.DYING;
+            deathTimer -= delta;
+            if (deathTimer <= 0f) {
+                corpse.setPosition(sprite.getX(), sprite.getY() - 10);
+                corpse.setAlpha(1f);
+                sprite.setPosition(respawnX, respawnY);
+                updateHitBox();
+                isDead = false;
+            }
+            return;
+        }
+
+        if (isDie(spikes)) {
+            soundManager.play(PlayerState.DYING);
+            animationManager.resetStateTime();
+            isDead = true;
+            deathTimer = deathDelay;
+            return;
         }
 
         float moveX = handleHorizontalInput(delta);
@@ -120,6 +149,19 @@ public class Player {
         applyHorizontalMovement(moveX, bounds, delta);
 
         playerStateHandler(moveX, delta);
+    }
+
+    public void drawCorpse(SpriteBatch batch) {
+        corpse.draw(batch);
+    }
+
+    private boolean isDie(List<Rectangle> spikes) {
+        for (Rectangle spike : spikes) {
+            if (hitBox.overlaps(spike)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
