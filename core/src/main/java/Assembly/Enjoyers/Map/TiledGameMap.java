@@ -15,8 +15,11 @@ import static Assembly.Enjoyers.Map.TileTyped.BoneSpike;
  * Завантажує карту, рендерить її та обробляє колізії і пастки (SPIKE).
  */
 public class TiledGameMap extends GameMap {
-    TiledMap tiledMap;
-    OrthogonalTiledMapRenderer tiledMapRender;
+    private final TiledMap tiledMap;
+    private final OrthogonalTiledMapRenderer tiledMapRender;
+
+    private final List<Rectangle> collisionRects = new ArrayList<>();
+    private final List<Rectangle> spikeRects = new ArrayList<>();
 
     /**
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
@@ -24,6 +27,7 @@ public class TiledGameMap extends GameMap {
     public TiledGameMap() {
         tiledMap = new TmxMapLoader().load("maps/night_level/map.tmx");
         tiledMapRender = new OrthogonalTiledMapRenderer(tiledMap);
+        generateCollisionData();
     }
 
     /**
@@ -55,6 +59,60 @@ public class TiledGameMap extends GameMap {
         tiledMap.dispose();
     }
 
+
+    private void generateCollisionData() {
+        int tileSize = TileTyped.TILE_SIZE;
+
+        for (int layer = 0; layer < getLayers(); layer++) {
+            TiledMapTileLayer tiledLayer = (TiledMapTileLayer) tiledMap.getLayers().get(layer);
+
+            for (int x = 0; x < tiledLayer.getWidth(); x++) {
+                for (int y = 0; y < tiledLayer.getHeight(); y++) {
+                    TiledMapTileLayer.Cell cell = tiledLayer.getCell(x, y);
+                    if (cell == null || cell.getTile() == null) continue;
+
+                    TileTyped tileType = TileTyped.getTileTypeById(cell.getTile().getId());
+                    if (tileType == null) continue;
+
+                    int tileX = x * tileSize;
+                    int tileY = y * tileSize;
+
+                    if (tileType.getEffectType() == TileTyped.TileEffectType.SPIKE) {
+                        if (tileType == BoneSpike) {
+                            int offset = tileSize / 8;
+                            int size = tileSize / 4;
+                            spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
+                        } else {
+                            spikeRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
+                        }
+                    } else if (tileType.isCollidable()) {
+                        collisionRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Повертає список прямокутників колізії, виключаючи плитки з ефектом SPIKE.
+     *
+     * @return список прямокутників колізії
+     */
+    @Override
+    public List<Rectangle> getCollisionRects() {
+        return collisionRects;
+    }
+
+    /**
+     * Повертає список прямокутників шипів (SPIKE), включно зі зміною розміру для BoneSpike.
+     *
+     * @return список прямокутників шипів
+     */
+    @Override
+    public List<Rectangle> getSpikes() {
+        return spikeRects;
+    }
+
     /**
      * Повертає тип плитки за координатами шару та клітинки.
      *
@@ -77,82 +135,6 @@ public class TiledGameMap extends GameMap {
         }
         return null;
     }
-
-
-    /**
-     * Повертає список прямокутників колізії, виключаючи плитки з ефектом SPIKE.
-     *
-     * @return список прямокутників колізії
-     */
-    @Override
-    public List<Rectangle> getCollisionRects() {
-        List<Rectangle> rects = new ArrayList<>();
-        int tileSize = TileTyped.TILE_SIZE;
-
-        for (int layer = 0; layer < getLayers(); layer++) {
-            TiledMapTileLayer tiledLayer = (TiledMapTileLayer) tiledMap.getLayers().get(layer);
-
-            for (int x = 0; x < tiledLayer.getWidth(); x++) {
-                for (int y = 0; y < tiledLayer.getHeight(); y++) {
-                    TiledMapTileLayer.Cell cell = tiledLayer.getCell(x, y);
-                    if (cell == null) continue;
-
-                    TileTyped tileType = TileTyped.getTileTypeById(cell.getTile().getId());
-                    if (tileType != null && tileType.isCollidable() && tileType.getEffectType() != TileTyped.TileEffectType.SPIKE) {
-                        rects.add(new Rectangle(
-                            x * tileSize,
-                            y * tileSize,
-                            tileSize,
-                            tileSize
-                        ));
-                    }
-//                    else if (tileType == BoneSpike) {
-//                        rects.add(new Rectangle(
-//                            x * tileSize + tileSize/8,
-//                            y * tileSize + tileSize/8,
-//                            tileSize/4,
-//                            tileSize/4
-//                        ));
-//                    }
-                }
-            }
-        }
-        return rects;
-    }
-
-    /**
-     * Повертає список прямокутників шипів (SPIKE), включно зі зміною розміру для BoneSpike.
-     *
-     * @return список прямокутників шипів
-     */
-    @Override
-    public List<Rectangle> getSpikes() {
-        List<Rectangle> spikeRects = new ArrayList<>();
-        int tileSize = TileTyped.TILE_SIZE;
-
-        for (int layer = 0; layer < getLayers(); layer++) {
-            TiledMapTileLayer tiledLayer = (TiledMapTileLayer) tiledMap.getLayers().get(layer);
-
-            for (int x = 0; x < tiledLayer.getWidth(); x++) {
-                for (int y = 0; y < tiledLayer.getHeight(); y++) {
-                    TiledMapTileLayer.Cell cell = tiledLayer.getCell(x, y);
-                    if (cell == null || cell.getTile() == null) continue;
-
-                    TileTyped tileType = TileTyped.getTileTypeById(cell.getTile().getId());
-                    if (tileType != null && tileType.getEffectType() == TileTyped.TileEffectType.SPIKE) {
-                        spikeRects.add(new Rectangle(
-                            x * tileSize + (tileType == TileTyped.BoneSpike ? tileSize/8 : 0),
-                            y * tileSize + (tileType == TileTyped.BoneSpike ? tileSize/8 : 0),
-                            tileType == TileTyped.BoneSpike ? tileSize/4 : tileSize,
-                            tileType == TileTyped.BoneSpike ? tileSize/4 : tileSize
-                        ));
-                    }
-                }
-            }
-        }
-        return spikeRects;
-    }
-
 
     /**
      * @return ширина мапи (у тайлах)

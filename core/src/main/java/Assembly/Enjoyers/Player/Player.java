@@ -1,20 +1,18 @@
 package Assembly.Enjoyers.Player;
 
-import Assembly.Enjoyers.Map.GameMap;
-import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 
 import java.util.List;
 
-import static com.badlogic.gdx.Gdx.graphics;
 import static com.badlogic.gdx.Gdx.input;
 
 public class Player {
@@ -22,9 +20,10 @@ public class Player {
     // --- Sprite ---
     private final Texture texture;
     public Sprite sprite;
+    private Sprite corpse;
     private Rectangle hitBox;
-    private final float hitBoxXOffset = 52f;
-    private final float hitBoxYOffset = 18f;
+    private final float hitBoxXOffset = 55f;
+    private final float hitBoxYOffset = 22f;
     private PlayerState currentState = PlayerState.IDLE;
     private final PlayerAnimationManager animationManager = new PlayerAnimationManager();
     private final PlayerSoundManager soundManager = new PlayerSoundManager();
@@ -46,9 +45,12 @@ public class Player {
     private final float wallJumpForceX = 1200f;
 
     // --- Dash ---
+    private boolean isDashing = false;
     private float dashXVelocity = 0;
     private float dashYVelocity = 0;
     private final float dashForce = 1000f;
+    private final float dashDecay = 0.98f;
+    private final float dashMinForce = 400f;
     private int dashCount = 1;
 
     // --- Stamina ---
@@ -58,9 +60,14 @@ public class Player {
     // --- UI ---
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
-    // respawn
+    // --- Respawn ---
     private float respawnX = 920;
     private float respawnY = 450;
+
+    // --- Death ---
+    private boolean isDead = false;
+    private float deathTimer = 0f;
+    private final float deathDelay;
 
     //endregion
 
@@ -68,11 +75,17 @@ public class Player {
      * Конструктор персонажа, ініціалізує текстуру, спрайт та хитбокс.
      */
     public Player(){
-        texture = new Texture("player\\adventurer-idle-01.png");
+        texture = new Texture("player\\adventurer-die-06.png");
         sprite = new Sprite(texture);
         sprite.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
         sprite.setPosition(respawnX, respawnY);
         hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
+
+        corpse = new Sprite(texture);
+        corpse.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
+        corpse.setAlpha(0);
+
+        deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
     }
 
     /**
@@ -91,14 +104,33 @@ public class Player {
      * Основна функція оновлення руху та взаємодії з рівнем.
      * @param bounds список прямокутників колізій
      */
-    public void move(List<Rectangle> bounds) {
-        float delta = graphics.getDeltaTime();
-
+    public void move(List<Rectangle> bounds, List<Rectangle> spikes, float delta) {
         currentState = PlayerState.IDLE;
 
+        if (isDead) {
+            currentState = PlayerState.DYING;
+            deathTimer -= delta;
+            if (deathTimer <= 0f) {
+                corpse.setPosition(sprite.getX(), sprite.getY() - 10);
+                corpse.setAlpha(1f);
+                sprite.setPosition(respawnX, respawnY);
+                updateHitBox();
+                isDead = false;
+            }
+            return;
+        }
+
+        if (isDie(spikes)) {
+            soundManager.play(PlayerState.DYING);
+            animationManager.resetStateTime();
+            isDead = true;
+            deathTimer = deathDelay;
+            return;
+        }
+
         float moveX = handleHorizontalInput(delta);
-        applyGravity(delta);
         dash();
+        applyGravity(delta);
 
         updateHitBox();
         onGround = checkFeetTouching(bounds);
@@ -119,6 +151,19 @@ public class Player {
         playerStateHandler(moveX, delta);
     }
 
+    public void drawCorpse(SpriteBatch batch) {
+        corpse.draw(batch);
+    }
+
+    private boolean isDie(List<Rectangle> spikes) {
+        for (Rectangle spike : spikes) {
+            if (hitBox.overlaps(spike)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     /**
      * Обробка поведінки стану гравця залежно від ситуацій під час гри.
      * Увімкнення звукових ефектів гравця.
@@ -130,7 +175,7 @@ public class Player {
         soundManager.playWallSlideRepeatable(currentState == PlayerState.WALL_SLIDING);
 
         if(currentState != PlayerState.WALL_CLIMBING && currentState != PlayerState.WALL_SLIDING && currentState != PlayerState.WALL_GRABBING && currentState != PlayerState.JUMPING) {
-            if (!isDashReady())
+            if (isDashing)
                 currentState = PlayerState.DASHING;
             else if (!onGround)
                 currentState = velocityY > 0 ? PlayerState.JUMPING : PlayerState.FALLING;
@@ -153,8 +198,8 @@ public class Player {
      * @param delta час між кадрами
      * @return TextureRegion відповідного кадру анімації
      */
-    public TextureRegion getFrame(float delta) {
-        return animationManager.getCurrentFrame(currentState, facingRight, delta);
+    public TextureRegion getFrame(float delta, boolean paused) {
+        return animationManager.getCurrentFrame(currentState, facingRight, delta, paused);
     }
 
     /**
@@ -270,14 +315,14 @@ public class Player {
                 currentState = PlayerState.WALL_SLIDING;
             }
 
-            if(input.isKeyJustPressed(Keys.SPACE) && !input.isKeyPressed(Keys.W)){
+            if(input.isKeyJustPressed(Keys.SPACE) && !input.isKeyPressed(Keys.W) && stamina > 0){
                 if (checkRightTouching(bounds)) {
-                    if (lastWallRight && stamina > 0) {
+                    if (lastWallRight) {
                         velocityX = -wallJumpForceX;
                         velocityY = jumpForce;
                         stamina -= staminaDrain;
                     }
-                    else if(!lastWallRight) {
+                    else {
                         velocityX = -wallJumpForceX;
                         velocityY = jumpForce;
                     }
@@ -347,36 +392,42 @@ public class Player {
      * Обробляє деш у різні сторони (LMB), з лімітом на кількість.
      */
     private void dash(){
-        dashXVelocity *= 0.98f;
-        dashYVelocity *= 0.98f;
+        if (isDashing) {
+            dashXVelocity *= dashDecay;
+            dashYVelocity *= dashDecay;
 
-        if(Math.abs(dashXVelocity) < 400)
-            dashXVelocity = 0;
-        if(Math.abs(dashYVelocity) < 400)
-            dashYVelocity = 0;
+            if (Math.abs(dashXVelocity) < dashMinForce && Math.abs(dashYVelocity) < dashMinForce) {
+                dashXVelocity = 0;
+                dashYVelocity = 0;
+                isDashing = false;
+            }
+            return;
+        }
 
-        if((input.isButtonJustPressed(Input.Buttons.LEFT) || input.isKeyJustPressed(Keys.SHIFT_LEFT) ) && dashCount !=0 && isDashReady()){
-            if(input.isKeyPressed(Keys.D))
-                dashXVelocity = dashForce;
-            if (input.isKeyPressed(Keys.A))
-                dashXVelocity = -dashForce;
-            if (input.isKeyPressed(Keys.W))
-                dashYVelocity = dashForce;
-            if (input.isKeyPressed(Keys.S))
-                dashYVelocity = -dashForce;
+        if ((input.isButtonJustPressed(Input.Buttons.LEFT) || input.isKeyJustPressed(Keys.SHIFT_LEFT))
+            && dashCount > 0 && !isDashing) {
+            float dx = 0, dy = 0;
+            if (input.isKeyPressed(Keys.D)) dx = 1;
+            if (input.isKeyPressed(Keys.A)) dx = -1;
+            if (input.isKeyPressed(Keys.W)) dy = 1;
+            if (input.isKeyPressed(Keys.S)) dy = -1;
 
+            if (dx == 0 && dy == 0)
+                dx = facingRight ? 1 : -1;
+
+            float len = (float) Math.sqrt(dx * dx + dy * dy);
+            if (len != 0) {
+                dx /= len;
+                dy /= len;
+            }
+
+            dashXVelocity = dx * dashForce;
+            dashYVelocity = dy * dashForce;
+            isDashing = true;
             dashCount--;
 
             soundManager.play(PlayerState.DASHING);
         }
-    }
-
-    /**
-     * Повертає чи готовий гравець до наступного ривку.
-     * @return Повертає чи готовий гравець до наступного ривку.
-     */
-    private boolean isDashReady(){
-        return dashXVelocity == 0 && dashYVelocity == 0;
     }
 
     /**
@@ -436,8 +487,8 @@ public class Player {
     private boolean checkWallTouching(List<Rectangle> bounds) {
         Rectangle testX1 = new Rectangle(hitBox);
         Rectangle testX2 = new Rectangle(hitBox);
-        testX1.x += moveSpeed * graphics.getDeltaTime();
-        testX2.x -= moveSpeed * graphics.getDeltaTime();
+        testX1.x += 2;
+        testX2.x -= 2;
         for (Rectangle bound : bounds)
             if (testX1.overlaps(bound) || testX2.overlaps(bound))
                 return true;
@@ -478,5 +529,9 @@ public class Player {
         soundManager.dispose();
         texture.dispose();
         animationManager.dispose();
+    }
+
+    public void stopSound(){
+        soundManager.playWallSlideRepeatable(false);
     }
 }
