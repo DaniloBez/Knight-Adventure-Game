@@ -9,17 +9,18 @@ import java.util.HashMap;
 public enum TileTyped {
 
     //for night_level
-    SteelSpike(628, true, "SteelSpike", TileEffectType.SPIKE),
-    BrickWall(608, true, "BrickWall", TileEffectType.NONE),
-    GrassBlock(687, true, "GrassBlock", TileEffectType.NONE),
-    BoneSpike(974, true, "BoneSpike",  TileEffectType.SPIKE),
-    LeftWoodPlatform(632, true, "LeftWoodPlatform",  TileEffectType.NONE),
-    FlatWoodPlatform(633, true, "FlatWoodPlatform",  TileEffectType.NONE),
-    RightWoodPlatform(634, true, "RightWoodPlatform",  TileEffectType.NONE),
-    BrickPlatform(598, true, "BrickPlatform",  TileEffectType.NONE),
-    StoneBlock(609, true, "StoneBlock",  TileEffectType.NONE),
-    DarkStoneBlock(624, true, "DarkStoneBlock",  TileEffectType.NONE),
-    CheckPoint(542, true, "CheckPoint",  TileEffectType.CHECK_POINT);
+    SteelSpike(268, true, "SteelSpike", TileEffectType.SPIKE),
+    BrickWall(248, true, "BrickWall", TileEffectType.NONE),
+    GrassBlock(327, true, "GrassBlock", TileEffectType.NONE),
+    BoneSpike(614, true, "BoneSpike",  TileEffectType.SPIKE),
+    LeftWoodPlatform(272, true, "LeftWoodPlatform",  TileEffectType.NONE),
+    FlatWoodPlatform(273, true, "FlatWoodPlatform",  TileEffectType.NONE),
+    RightWoodPlatform(274, true, "RightWoodPlatform",  TileEffectType.NONE),
+    BrickPlatform(238, true, "BrickPlatform",  TileEffectType.NONE),
+    StoneBlock(249, true, "StoneBlock",  TileEffectType.NONE),
+    DarkStoneBlock(264, true, "DarkStoneBlock",  TileEffectType.NONE),
+    Jump_Pad(673, true, "Jump_pad", TileEffectType.Jump_Pad),
+    CheckPoint(182, true, "CheckPoint",  TileEffectType.CHECK_POINT);
 
     /** Розмір плитки в пікселях */
     public static final int TILE_SIZE = 32;
@@ -107,6 +108,7 @@ public enum TileTyped {
         NONE,
         SPIKE,
         SLIME_BlOCK,
-        CHECK_POINT
+        CHECK_POINT,
+        Jump_Pad,
     }
 }
