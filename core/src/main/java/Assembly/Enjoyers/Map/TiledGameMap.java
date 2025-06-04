@@ -20,6 +20,7 @@ public class TiledGameMap extends GameMap {
 
     private final List<Rectangle> collisionRects = new ArrayList<>();
     private final List<Rectangle> spikeRects = new ArrayList<>();
+    private final List<CrumblingBlock> crumblingBlocks = new ArrayList<>();
 
     /**
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
@@ -27,6 +28,7 @@ public class TiledGameMap extends GameMap {
     public TiledGameMap() {
         tiledMap = new TmxMapLoader().load("maps/night_level/map.tmx");
         tiledMapRender = new OrthogonalTiledMapRenderer(tiledMap);
+
         generateCollisionData();
     }
 
@@ -85,6 +87,8 @@ public class TiledGameMap extends GameMap {
                         } else {
                             spikeRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
                         }
+                    } else if (tileType.getEffectType() == TileTyped.TileEffectType.CRUMBLING) {
+                        crumblingBlocks.add(new CrumblingBlock(tileX, tileY, tileSize, tileSize));
                     } else if (tileType.isCollidable()) {
                         collisionRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
                     }
@@ -111,6 +115,11 @@ public class TiledGameMap extends GameMap {
     @Override
     public List<Rectangle> getSpikes() {
         return spikeRects;
+    }
+
+    @Override
+    public List<CrumblingBlock> getCrumblingBlocks() {
+        return crumblingBlocks;
     }
 
     /**

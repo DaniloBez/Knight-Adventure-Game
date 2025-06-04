@@ -52,6 +52,8 @@ public abstract class GameMap {
      */
     public abstract List<Rectangle> getSpikes();
 
+    public abstract List<CrumblingBlock> getCrumblingBlocks();
+
     /**
      * Повертає тип плитки за координатами у сітці мапи.
      *

@@ -1,6 +1,7 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
+import Assembly.Enjoyers.Map.CrumblingBlock;
 import Assembly.Enjoyers.Map.GameMap;
 import Assembly.Enjoyers.Map.TiledGameMap;
 import Assembly.Enjoyers.Utils.MusicManager;
@@ -33,6 +34,7 @@ public class GameScreen implements Screen {
 
     private Player player;
     private List<Rectangle> bounds, spikes;
+    private List<CrumblingBlock> crumblingBlocks;
     private GameMap gameMap;
 
     private boolean isPaused = false;
@@ -56,6 +58,7 @@ public class GameScreen implements Screen {
         gameMap = new TiledGameMap();
         bounds = gameMap.getCollisionRects();
         spikes = gameMap.getSpikes();
+        crumblingBlocks = gameMap.getCrumblingBlocks();
 
         player = new Player();
         MusicManager.init();
@@ -119,7 +122,11 @@ public class GameScreen implements Screen {
         }
 
         if (!isPaused) {
-            player.move(bounds, spikes, delta);
+            for (CrumblingBlock block : crumblingBlocks) {
+                block.update(delta);
+            }
+
+            player.move(bounds, spikes, crumblingBlocks, delta);
 
             camera.position.set(
                 player.sprite.getX() + player.sprite.getWidth() / 2,
@@ -153,6 +160,15 @@ public class GameScreen implements Screen {
     private void draw(float delta) {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
+        // Відображення зникаючих блоків
+        for (CrumblingBlock block : gameMap.getCrumblingBlocks()) {
+
+            if (!block.isDestroyed()) {
+                TextureRegion blockFrame = block.getCurrentFrame(delta);
+                Rectangle bounds = block.getBounds();
+                game.batch.draw(blockFrame, bounds.x, bounds.y, bounds.width, bounds.height);
+            }
+        }
         player.drawCorpse(game.batch);
     }
 

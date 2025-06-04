@@ -17,7 +17,8 @@ public enum TileTyped {
     FlatWoodPlatform(273, true, "FlatWoodPlatform",  TileEffectType.NONE),
     RightWoodPlatform(274, true, "RightWoodPlatform",  TileEffectType.NONE),
     BrickPlatform(238, true, "BrickPlatform",  TileEffectType.NONE),
-    StoneBlock(249, true, "StoneBlock",  TileEffectType.NONE),
+    StoneBlock(249, true, "StoneBlock", TileEffectType.NONE),
+    CrumblingBlock(435, true, "CrumblingBlock",  TileEffectType.CRUMBLING),
     DarkStoneBlock(264, true, "DarkStoneBlock",  TileEffectType.NONE),
     Jump_Pad(673, true, "Jump_pad", TileEffectType.Jump_Pad),
     CheckPoint(182, true, "CheckPoint",  TileEffectType.CHECK_POINT);
@@ -110,5 +111,6 @@ public enum TileTyped {
         SLIME_BlOCK,
         CHECK_POINT,
         Jump_Pad,
+        CRUMBLING,
     }
 }
