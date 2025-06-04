@@ -33,8 +33,10 @@ public class GameScreen implements Screen {
     private OrthographicCamera camera;
 
     private Player player;
-    private List<Rectangle> bounds, spikes;
+    private List<Rectangle> staticBounds;
+    private List<Rectangle> spikes;
     private List<CrumblingBlock> crumblingBlocks;
+    private final List<Rectangle> activeCollisions = new ArrayList<>();
     private GameMap gameMap;
 
     private boolean isPaused = false;
@@ -56,9 +58,9 @@ public class GameScreen implements Screen {
         viewport = new StretchViewport(1920, 1080, camera);
 
         gameMap = new TiledGameMap();
-        bounds = gameMap.getCollisionRects();
-        spikes = gameMap.getSpikes();
+        staticBounds = gameMap.getCollisionRects();
         crumblingBlocks = gameMap.getCrumblingBlocks();
+        spikes = gameMap.getSpikes();
 
         player = new Player();
         MusicManager.init();
@@ -122,11 +124,20 @@ public class GameScreen implements Screen {
         }
 
         if (!isPaused) {
+            // Очистити попередній стан колізій
+            activeCollisions.clear();
+
+            activeCollisions.addAll(staticBounds);
+
             for (CrumblingBlock block : crumblingBlocks) {
                 block.update(delta);
+                if (block.isActive() && block.getStage() < 5) {
+                    activeCollisions.add(block.getBounds());
+                }
             }
 
-            player.move(bounds, spikes, crumblingBlocks, delta);
+
+            player.move(activeCollisions, spikes, delta);
 
             camera.position.set(
                 player.sprite.getX() + player.sprite.getWidth() / 2,
