@@ -12,7 +12,7 @@ import java.util.List;
 public class CrumblingAnimationManager {
     private final List<Texture> loadedTextures = new ArrayList<>();
     private final TextureRegion[] frames = new TextureRegion[5];
-    private final float[] frameDurations = {1f, 1f, 1f, 1f, 2,5f};
+    private final float[] frameDurations = {0.3f, 0.3f, 0.3f, 0.3f, 2f};
 
     /**
      * Створює менеджер анімації та завантажує всі необхідні текстури для етапів руйнування.

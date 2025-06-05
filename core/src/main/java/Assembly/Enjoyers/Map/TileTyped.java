@@ -12,15 +12,19 @@ public enum TileTyped {
     SteelSpike(268, true, "SteelSpike", TileEffectType.SPIKE),
     BrickWall(248, true, "BrickWall", TileEffectType.NONE),
     GrassBlock(327, true, "GrassBlock", TileEffectType.NONE),
+    RightGrassBlock(328, true, "RightGrassBlock", TileEffectType.NONE),
+    LeftGrassBlock(326, true, "LeftGrassBlock", TileEffectType.NONE),
+    LeftDirtWall(337, true, "LeftDirtWall", TileEffectType.NONE),
+    RightDirtWall(339, true, "RightDirtWall", TileEffectType.NONE),
     BoneSpike(614, true, "BoneSpike",  TileEffectType.SPIKE),
     LeftWoodPlatform(272, true, "LeftWoodPlatform",  TileEffectType.NONE),
     FlatWoodPlatform(273, true, "FlatWoodPlatform",  TileEffectType.NONE),
     RightWoodPlatform(274, true, "RightWoodPlatform",  TileEffectType.NONE),
     BrickPlatform(238, true, "BrickPlatform",  TileEffectType.NONE),
     StoneBlock(249, true, "StoneBlock", TileEffectType.NONE),
-    CrumblingBlock(435, true, "CrumblingBlock",  TileEffectType.CRUMBLING),
+    CrumblingBlock(2434, true, "CrumblingBlock",  TileEffectType.CRUMBLING),
     DarkStoneBlock(264, true, "DarkStoneBlock",  TileEffectType.NONE),
-    Jump_Pad(673, true, "Jump_pad", TileEffectType.Jump_Pad),
+    Jump_Pad(673, true, "Jump_pad", TileEffectType.JUMP_PAD),
     CheckPoint(182, true, "CheckPoint",  TileEffectType.CHECK_POINT);
 
     /** Розмір плитки в пікселях */
@@ -110,7 +114,7 @@ public enum TileTyped {
         SPIKE,
         SLIME_BlOCK,
         CHECK_POINT,
-        Jump_Pad,
+        JUMP_PAD,
         CRUMBLING,
     }
 }

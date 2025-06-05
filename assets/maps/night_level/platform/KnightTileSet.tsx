@@ -4,4 +4,5 @@
  <tile id="16" type="StonePlatform"/>
  <tile id="32" type="CrumblingBlock"/>
  <tile id="211" type="BoneSpike"/>
+ <tile id="213" type="FakeSpikes"/>
 </tileset>
