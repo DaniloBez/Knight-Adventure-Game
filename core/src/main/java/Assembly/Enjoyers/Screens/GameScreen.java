@@ -67,8 +67,6 @@ public class GameScreen implements Screen {
 
         inputProcessor = new InputMultiplexer(pauseStage);
 
-        Gdx.input.setInputProcessor(inputProcessor);
-
         Table table = new Table();
         table.setFillParent(true);
         table.center();
@@ -153,7 +151,7 @@ public class GameScreen implements Screen {
     private void draw(float delta) {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
-        player.drawCorpse(game.batch);
+        player.drawCorpse(game.batch, bounds, delta);
     }
 
     @Override public void resize(int width, int height) {
