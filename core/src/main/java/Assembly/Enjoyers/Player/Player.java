@@ -49,7 +49,7 @@ public class Player {
     private float dashXVelocity = 0;
     private float dashYVelocity = 0;
     private final float dashForce = 1000f;
-    private final float dashDecay = 0.98f;
+    private final float dashDecayRaw = 0.98f;
     private final float dashMinForce = 400f;
     private int dashCount = 1;
 
@@ -129,7 +129,7 @@ public class Player {
         }
 
         float moveX = handleHorizontalInput(delta);
-        dash();
+        dash(delta);
         applyGravity(delta);
 
         updateHitBox();
@@ -391,8 +391,9 @@ public class Player {
     /**
      * Обробляє деш у різні сторони (LMB), з лімітом на кількість.
      */
-    private void dash(){
+    private void dash(float delta) {
         if (isDashing) {
+            float dashDecay = (float) (Math.pow(dashDecayRaw, delta * 60));
             dashXVelocity *= dashDecay;
             dashYVelocity *= dashDecay;
 
