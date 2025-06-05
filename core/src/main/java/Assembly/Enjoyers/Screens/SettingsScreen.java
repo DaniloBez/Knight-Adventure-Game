@@ -94,11 +94,14 @@ public class SettingsScreen implements Screen {
         saveButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                game.buttonPress();
                 initialMusic = musicSlider.getValue();
                 prefs.putFloat("musicVolume", musicSlider.getValue());
                 initialSound = soundSlider.getValue();
                 prefs.putFloat("soundVolume", soundSlider.getValue());
                 prefs.flush();
+
+                game.loadVolume();
 
                 savedLabel.setVisible(true);
                 Timer.schedule(new Timer.Task() {
@@ -113,6 +116,7 @@ public class SettingsScreen implements Screen {
         backButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                game.buttonPress();
                 boolean musicChanged = Math.abs(musicSlider.getValue() - initialMusic) > 0.01f;
                 boolean soundChanged = Math.abs(soundSlider.getValue() - initialSound) > 0.01f;
 

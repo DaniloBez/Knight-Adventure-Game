@@ -65,6 +65,7 @@ public class MainMenuScreen implements Screen {
         startButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                game.buttonPress();
                 game.setScreen(new GameScreen(game));
             }
         });
@@ -72,6 +73,7 @@ public class MainMenuScreen implements Screen {
         settingsButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                game.buttonPress();
                 game.setScreen(game.settingsScreen);
             }
         });
@@ -79,6 +81,7 @@ public class MainMenuScreen implements Screen {
         exitButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                game.buttonPress();
                 Gdx.app.exit();
             }
         });

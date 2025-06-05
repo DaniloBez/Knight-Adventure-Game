@@ -103,12 +103,14 @@ public class GameScreen implements Screen {
         buttonContinue.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                game.buttonPress();
                 resume();
             }
         });
         buttonRestart.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                game.buttonPress();
                 resume();
                 player.respawn();
             }
@@ -117,6 +119,7 @@ public class GameScreen implements Screen {
         buttonMainMenu.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                game.buttonPress();
                 game.setScreen(game.mainMenuScreen);
             }
         });
