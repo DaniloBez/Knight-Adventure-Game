@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static Assembly.Enjoyers.Map.TileTyped.BoneSpike;
+import static Assembly.Enjoyers.Map.TileTyped.SteelSpike;
 
 /**
  * Реалізація мапи гри на основі Tiled (.tmx).
@@ -84,12 +85,18 @@ public class TiledGameMap extends GameMap {
                             int offset = tileSize / 8;
                             int size = tileSize / 4;
                             spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
-                        } else {
+                        } else if (tileType == SteelSpike) {
+                            int offset = tileSize / 8;
+                            int size = tileSize / 2;
+                            spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
+                        }
+                        else {
                             spikeRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
                         }
                     } else if (tileType.getEffectType() == TileTyped.TileEffectType.CRUMBLING) {
                         crumblingBlocks.add(new CrumblingBlock(tileX, tileY, tileSize, tileSize));
-                    } else if (tileType.isCollidable()) {
+                    }
+                    else if (tileType.isCollidable()) {
                         collisionRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
                     }
                 }
