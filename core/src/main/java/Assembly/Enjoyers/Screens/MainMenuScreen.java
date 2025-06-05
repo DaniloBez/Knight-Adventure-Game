@@ -31,7 +31,7 @@ public class MainMenuScreen implements Screen {
      */
     public MainMenuScreen(MainGame game) {
         this.game = game;
-        background = new Texture("temp/background.jpg");
+        background = new Texture("temp/background.png");
         font = new BitmapFont();
 
         stage = new Stage(new ScreenViewport());
@@ -55,7 +55,7 @@ public class MainMenuScreen implements Screen {
         titleStyle.font = font;
 
         Label title = new Label("Knight Adventure", titleStyle);
-        title.setFontScale(2f);
+        title.setFontScale(4f);
         title.setAlignment(Align.center);
 
         TextButton startButton = new TextButton("Почати гру", skin);

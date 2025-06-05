@@ -5,6 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
@@ -22,6 +24,8 @@ public class SettingsScreen implements Screen {
     private final Skin skin;
     private final Preferences prefs;
 
+    private final Texture background;
+
     private float initialMusic;
     private float initialSound;
 
@@ -35,6 +39,8 @@ public class SettingsScreen implements Screen {
         this.game = game;
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
+
+        background = new Texture("temp/background.jpg");
 
         skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
         prefs = Gdx.app.getPreferences("settings");
@@ -51,8 +57,8 @@ public class SettingsScreen implements Screen {
         table.center();
         stage.addActor(table);
 
-        Label musicLabel = new Label("Гучність музики", skin);
-        Label soundLabel = new Label("Гучність звуків", skin);
+        Label musicLabel = new Label("Гучнiсть музики", skin);
+        Label soundLabel = new Label("Гучнiсть звукiв", skin);
         Label musicValueLabel = new Label("", skin);
         Label soundValueLabel = new Label("", skin);
 
@@ -64,16 +70,16 @@ public class SettingsScreen implements Screen {
         initialSound = prefs.getFloat("soundVolume", 0.5f);
         musicSlider.setValue(initialMusic);
         soundSlider.setValue(initialSound);
-        musicValueLabel.setText(String.format("%.2f", initialMusic));
-        soundValueLabel.setText(String.format("%.2f", initialSound));
+        musicValueLabel.setText(Math.round(initialMusic * 100) + "%");
+        soundValueLabel.setText(Math.round(initialSound * 100) + "%");
 
         // Обробка зміни значень
         musicSlider.addListener(event -> {
-            musicValueLabel.setText(String.format("%.2f", musicSlider.getValue()));
+            musicValueLabel.setText(Math.round(musicSlider.getValue() * 100) + "%");
             return false;
         });
         soundSlider.addListener(event -> {
-            soundValueLabel.setText(String.format("%.2f", soundSlider.getValue()));
+            soundValueLabel.setText(Math.round(soundSlider.getValue() * 100) + "%");
             return false;
         });
 
@@ -83,7 +89,7 @@ public class SettingsScreen implements Screen {
         final Label savedLabel = new Label("Збережено!", skin);
         savedLabel.setVisible(false);
         stage.addActor(savedLabel);
-        savedLabel.setPosition(20, 20);
+        savedLabel.setPosition(20, 50);
 
         saveButton.addListener(new ClickListener() {
             @Override
@@ -118,7 +124,7 @@ public class SettingsScreen implements Screen {
                             }
                         }
                     };
-                    dialog.text("Ви не зберегли зміни. Вийти без збереження?");
+                    dialog.text("Ви не зберегли змiни. Вийти без збереження?");
                     dialog.button("Так", true);
                     dialog.button("Нi", false);
                     dialog.show(stage);
@@ -158,6 +164,11 @@ public class SettingsScreen implements Screen {
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        game.batch.begin();
+        game.batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        game.batch.end();
+
         stage.act(delta);
         stage.draw();
     }
