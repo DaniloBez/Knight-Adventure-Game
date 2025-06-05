@@ -109,7 +109,8 @@ public class GameScreen implements Screen {
         buttonRestart.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                //TODO
+                resume();
+                player.respawn();
             }
         });
 

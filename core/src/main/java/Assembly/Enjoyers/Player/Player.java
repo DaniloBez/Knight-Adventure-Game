@@ -136,6 +136,20 @@ public class Player {
     }
 
     /**
+     * Викликає смерть у гравця, задля його переміщення на початок рівня.
+     */
+    public void respawn(){
+        isDashing = false;
+        dashXVelocity = 0;
+        dashYVelocity = 0;
+
+        soundManager.play(PlayerState.DYING);
+        animationManager.resetStateTime();
+        isDead = true;
+        deathTimer = deathDelay;
+    }
+
+    /**
      * Малює тіло померлого гравця, з гравітацією.
      * @param batch Малювання сцени.
      * @param bounds список колізій.
