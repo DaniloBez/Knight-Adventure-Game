@@ -12,6 +12,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+/**
+ * Екран налаштувань гри.
+ * Дозволяє змінювати гучність музики та звуків, зберігати зміни та повертатись до головного меню.
+ */
 public class SettingsScreen implements Screen {
     private MainGame game;
     private final Stage stage;
@@ -21,7 +25,12 @@ public class SettingsScreen implements Screen {
     private float initialMusic;
     private float initialSound;
 
-
+    /**
+     * Конструктор екрана налаштувань.
+     * Ініціалізує сцену, завантажує збережені налаштування та створює UI.
+     *
+     * @param game основний клас гри
+     */
     public SettingsScreen(MainGame game) {
         this.game = game;
         stage = new Stage(new ScreenViewport());
@@ -33,7 +42,9 @@ public class SettingsScreen implements Screen {
         createUI();
     }
 
-
+    /**
+     * Створює інтерфейс користувача: слайдери гучності, кнопки збереження та повернення назад.
+     */
     private void createUI() {
         Table table = new Table();
         table.setFillParent(true);
@@ -130,12 +141,19 @@ public class SettingsScreen implements Screen {
     }
 
 
-
+    /**
+     * Викликається при показі екрана. Встановлює сцену як обробник вводу.
+     */
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
     }
 
+    /**
+     * Рендерить сцену налаштувань.
+     *
+     * @param delta час між кадрами
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -144,21 +162,36 @@ public class SettingsScreen implements Screen {
         stage.draw();
     }
 
+
+    /**
+     * Оновлення розмірів при зміні розміру вікна.
+     * @param width нова ширина
+     * @param height нова висота
+     */
     @Override
     public void resize(int width, int height) {
-
+        stage.getViewport().update(width, height, true);
     }
 
+    /**
+     * Викликається при паузі (не використовується).
+     */
     @Override
     public void pause() {
 
     }
 
+    /**
+     * Викликається при відновленні (не використовується).
+     */
     @Override
     public void resume() {
 
     }
 
+    /**
+     * Викликається при приховуванні екрана. Скидає обробку вводу.
+     */
     @Override
     public void hide() {
         if (Gdx.input.getInputProcessor() == stage)
@@ -166,6 +199,7 @@ public class SettingsScreen implements Screen {
 
     }
 
+    /// Очищує ресурси сцени та скіна.
     @Override
     public void dispose() {
         skin.dispose();

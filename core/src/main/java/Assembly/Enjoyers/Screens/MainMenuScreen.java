@@ -13,6 +13,10 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+/**
+ * Головне меню гри.
+ * Відображає назву гри та надає користувачеві кнопки для запуску гри, переходу до налаштувань або виходу.
+ */
 public class MainMenuScreen implements Screen {
     private MainGame game;
     private final Texture background;
@@ -20,6 +24,11 @@ public class MainMenuScreen implements Screen {
     private final Stage stage;
     private final Skin skin;
 
+    /**
+     * Конструктор головного меню.
+     * Ініціалізує сцену, завантажує фон та шрифт, створює UI.
+     * @param game головний клас гри
+     */
     public MainMenuScreen(MainGame game) {
         this.game = game;
         background = new Texture("temp/background.jpg");
@@ -33,6 +42,9 @@ public class MainMenuScreen implements Screen {
         createUI();
     }
 
+    /**
+     * Створює елементи UI: заголовок і кнопки (почати гру, налаштування, вийти).
+     */
     private void createUI() {
         Table table = new Table();
         table.setFillParent(true);
@@ -78,6 +90,10 @@ public class MainMenuScreen implements Screen {
         table.add(exitButton).width(300).height(60).row();
     }
 
+    /**
+     * Відображення кожного кадру. Малює фон та сцену.
+     * @param delta час між кадрами
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
@@ -94,18 +110,29 @@ public class MainMenuScreen implements Screen {
         stage.draw();
     }
 
+    /** Оновлення розмірів при зміні розміру вікна. */
     @Override public void resize(int width, int height) {
         stage.getViewport().update(width, height, true);
     }
+
+    /** Викликається при паузі (не використовується). */
     @Override public void pause() {}
+
+    /** Викликається при відновленні (не використовується). */
     @Override public void resume() {}
 
+    /**
+     * Викликається при приховуванні екрану.
+     * Вимикає обробку вводу для цієї сцени.
+     */
     @Override public void hide() {
         if (Gdx.input.getInputProcessor() == stage)
             Gdx.input.setInputProcessor(null);
-
     }
 
+    /**
+     * Очищення ресурсів екрана.
+     */
     @Override public void dispose() {
         background.dispose();
         font.dispose();
@@ -114,6 +141,10 @@ public class MainMenuScreen implements Screen {
         game = null;
     }
 
+    /**
+     * Викликається при показі екрану.
+     * Встановлює сцену як обробник вводу.
+     */
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);

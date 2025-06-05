@@ -24,6 +24,10 @@ import com.badlogic.gdx.utils.viewport.Viewport;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Основний ігровий екран, на якому відображається рівень, гравець та логіка паузи.
+ * Обробляє рендеринг, логіку руху, обробку паузи та інтерфейс паузи.
+ */
 public class GameScreen implements Screen {
     //region variables
     private MainGame game;
@@ -42,6 +46,10 @@ public class GameScreen implements Screen {
     private InputProcessor inputProcessor;
     //endregion
 
+    /**
+     * Створює новий ігровий екран.
+     * @param game головний об'єкт гри
+     */
     public GameScreen(MainGame game) {
         this.game = game;
         setUpGame();
@@ -49,6 +57,9 @@ public class GameScreen implements Screen {
         createUI();
     }
 
+    /**
+     * Ініціалізує ігрові об'єкти, карту, колізії, гравця і музику.
+     */
     private void setUpGame(){
         camera = new OrthographicCamera();
         viewport = new StretchViewport(1920, 1080, camera);
@@ -61,6 +72,9 @@ public class GameScreen implements Screen {
         MusicManager.init();
     }
 
+    /**
+     * Створює сцену паузи та інтерфейс із кнопками.
+     */
     private void createUI() {
         skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
         pauseStage = new Stage(new ScreenViewport());
@@ -107,6 +121,10 @@ public class GameScreen implements Screen {
         });
     }
 
+    /**
+     * Основний метод рендерингу, викликається кожен кадр.
+     * @param delta час між кадрами
+     */
     @Override
     public void render(float delta) {
         delta = Math.min(delta, 1/60f);
@@ -148,15 +166,28 @@ public class GameScreen implements Screen {
         }
     }
 
+    /**
+     * Малює гравця та тіло після смерті.
+     * @param delta час між кадрами
+     */
     private void draw(float delta) {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
         player.drawCorpse(game.batch, bounds, delta);
     }
 
+    /**
+     * Обробка зміни розміру вікна гри.
+     * @param width нова ширина
+     * @param height нова висота
+     */
     @Override public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
+
+    /**
+     * Активує паузу гри.
+     */
     @Override public void pause() {
         MusicManager.pause();
         isPaused = true;
@@ -164,6 +195,10 @@ public class GameScreen implements Screen {
         Gdx.input.setInputProcessor(inputProcessor);
         Gdx.input.setCursorCatched(false);
     }
+
+    /**
+     * Відновлює гру з паузи.
+     */
     @Override public void resume() {
         MusicManager.resume();
         isPaused = false;
@@ -171,7 +206,12 @@ public class GameScreen implements Screen {
         Gdx.input.setCursorCatched(true);
     }
 
+    /** Викликається при приховуванні екрана. */
     @Override public void hide() {}
+
+    /**
+     * Очищення ресурсів після завершення екрану.
+     */
     @Override public void dispose() {
         player.dispose();
         gameMap.dispose();
@@ -179,6 +219,10 @@ public class GameScreen implements Screen {
 
         game = null;
     }
+
+    /**
+     * Викликається при показі екрана.
+     */
     @Override public void show() {
         Gdx.input.setCursorCatched(true);
     }
