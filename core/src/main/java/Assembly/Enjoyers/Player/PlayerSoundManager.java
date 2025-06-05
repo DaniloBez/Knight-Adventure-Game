@@ -19,13 +19,13 @@ public class PlayerSoundManager {
 
     private long wallSlideSoundId = -1;
 
-    private final float scale;
+    private final float volume;
 
     /**
      * Ініціалізує всі звукові ефекти для кожного стану персонажа.
      */
     public PlayerSoundManager(){
-        scale = Gdx.app.getPreferences("settings").getFloat("soundVolume", 0.5f);
+        volume = Gdx.app.getPreferences("settings").getFloat("soundVolume", 0.5f);
 
         sounds.put(PlayerState.RUNNING, load("sounds\\steps.mp3"));
         cooldowns.put(PlayerState.RUNNING, 0.3f);
@@ -79,7 +79,7 @@ public class PlayerSoundManager {
         float cooldown = cooldowns.getOrDefault(state, 0f);
 
         if (timeLeft <= 0f) {
-            sound.play(scale);
+            sound.play(volume);
             timers.put(state, cooldown);
         }
     }
@@ -94,7 +94,7 @@ public class PlayerSoundManager {
 
         if (repeat) {
             if (wallSlideSoundId == -1) {
-                wallSlideSoundId = sound.loop(0.3f * scale);
+                wallSlideSoundId = sound.loop(0.3f * volume);
             }
         } else {
             if (wallSlideSoundId != -1) {

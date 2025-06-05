@@ -9,22 +9,22 @@ import com.badlogic.gdx.audio.Music;
 public class MusicManager {
     private static Music backgroundMusic;
     private static Music windNoise;
-    private static float scale;
+    private static float volume;
 
     /**
      * Ініціалізує і запускає музику в циклі.
      */
     public static void init() {
-        scale = Gdx.app.getPreferences("settings").getFloat("musicVolume", 0.5f);
+        volume = Gdx.app.getPreferences("settings").getFloat("musicVolume", 0.5f);
 
         backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Creepy Forest.wav"));
         backgroundMusic.setLooping(true);
-        backgroundMusic.setVolume(0.04f * scale);
+        backgroundMusic.setVolume(0.04f * volume);
         backgroundMusic.play();
 
         windNoise = Gdx.audio.newMusic(Gdx.files.internal("music/wind.wav"));
         windNoise.setLooping(true);
-        windNoise.setVolume(0.4f * scale);
+        windNoise.setVolume(0.4f * volume);
         windNoise.play();
     }
 

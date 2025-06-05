@@ -43,10 +43,16 @@ public class MainGame extends Game {
         setScreen(mainMenuScreen);
     }
 
+    /**
+     * Програє звук натиску на кнопку.
+     */
     public void buttonPress(){
         buttonPressed.play(volume);
     }
 
+    /**
+     * Завантажує гучність.
+     */
     public void loadVolume(){
         volume = Gdx.app.getPreferences("settings").getFloat("soundVolume", 0.5f);
     }
