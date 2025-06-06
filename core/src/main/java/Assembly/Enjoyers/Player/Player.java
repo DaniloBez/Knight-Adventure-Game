@@ -49,7 +49,7 @@ public class Player {
     private float dashXVelocity = 0;
     private float dashYVelocity = 0;
     private final float dashForce = 1000f;
-    private final float dashDecay = 0.98f;
+    private final float dashDecay = 0.987f;
     private final float dashMinForce = 400f;
     private int dashCount = 1;
 
@@ -63,6 +63,10 @@ public class Player {
     // --- Respawn ---
     private float respawnX = 920;
     private float respawnY = 450;
+
+    // For Crumbling Block Level
+//    private float respawnX = 9200;
+//    private float respawnY = 1700;
 
     // --- Death ---
     private boolean isDead = false;
@@ -88,6 +92,19 @@ public class Player {
         deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
     }
 
+
+    public void applyJumpPadBoost() {
+        float currentVelocityX = velocityX;
+
+        dashYVelocity = 0;
+        velocityY = 900f;
+
+        velocityX = currentVelocityX;
+
+        currentState = PlayerState.JUMPING;
+        soundManager.play(PlayerState.JUMPING);
+    }
+
     /**
      * Малює прямокутник хитбоксу навколо персонажа для відлагодження.
      * @param camera активна ігрова камера
@@ -98,6 +115,10 @@ public class Player {
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(hitBox.x, hitBox.y, hitBox.width, hitBox.height);
         shapeRenderer.end();
+    }
+
+    public Rectangle getBounds() {
+        return hitBox;
     }
 
     /**

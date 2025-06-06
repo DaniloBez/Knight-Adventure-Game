@@ -24,7 +24,7 @@ public enum TileTyped {
     StoneBlock(249, true, "StoneBlock", TileEffectType.NONE),
     CrumblingBlock(2434, true, "CrumblingBlock",  TileEffectType.CRUMBLING),
     DarkStoneBlock(264, true, "DarkStoneBlock",  TileEffectType.NONE),
-    Jump_Pad(673, true, "Jump_pad", TileEffectType.JUMP_PAD),
+    Jump_Pad(673, true, "Jump_Pad", TileEffectType.JUMP_PAD),
     CheckPoint(182, true, "CheckPoint",  TileEffectType.CHECK_POINT);
 
     /** Розмір плитки в пікселях */

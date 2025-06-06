@@ -1,14 +1,14 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
-import Assembly.Enjoyers.Map.CrumblingBlock;
+import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
+import Assembly.Enjoyers.Map.AnimatedBlocks.JumpPad;
 import Assembly.Enjoyers.Map.GameMap;
 import Assembly.Enjoyers.Map.TiledGameMap;
 import Assembly.Enjoyers.Utils.MusicManager;
 import Assembly.Enjoyers.Player.Player;
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.*;
-import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
@@ -136,6 +136,17 @@ public class GameScreen implements Screen {
                 }
             }
 
+            for (JumpPad jumpPad : gameMap.getJumpPads()) {
+                jumpPad.update(delta);
+
+                if (player.getBounds().overlaps(jumpPad.getTriggerBounds())) {
+
+                    if (!jumpPad.isTriggered()) {
+                        jumpPad.trigger();
+                        player.applyJumpPadBoost();
+                    }
+                }
+            }
 
             player.move(activeCollisions, spikes, delta);
 
@@ -171,6 +182,7 @@ public class GameScreen implements Screen {
     private void draw(float delta) {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
+
         // Відображення зникаючих блоків
         for (CrumblingBlock block : gameMap.getCrumblingBlocks()) {
 
@@ -180,6 +192,13 @@ public class GameScreen implements Screen {
                 game.batch.draw(blockFrame, bounds.x, bounds.y, bounds.width, bounds.height);
             }
         }
+
+        for (JumpPad jumpPad : gameMap.getJumpPads()) {
+            TextureRegion frame = jumpPad.getCurrentFrame();
+            Rectangle drawBounds = jumpPad.getDrawBounds();
+            game.batch.draw(frame, drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height);
+        }
+
         player.drawCorpse(game.batch);
     }
 

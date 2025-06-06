@@ -1,5 +1,7 @@
 package Assembly.Enjoyers.Map;
 
+import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
+import Assembly.Enjoyers.Map.AnimatedBlocks.JumpPad;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.maps.tiled.*;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -22,6 +24,7 @@ public class TiledGameMap extends GameMap {
     private final List<Rectangle> collisionRects = new ArrayList<>();
     private final List<Rectangle> spikeRects = new ArrayList<>();
     private final List<CrumblingBlock> crumblingBlocks = new ArrayList<>();
+    private final List<JumpPad> jumpPads = new ArrayList<>();
 
     /**
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
@@ -95,6 +98,8 @@ public class TiledGameMap extends GameMap {
                         }
                     } else if (tileType.getEffectType() == TileTyped.TileEffectType.CRUMBLING) {
                         crumblingBlocks.add(new CrumblingBlock(tileX, tileY, tileSize, tileSize));
+                    } else if (tileType.getEffectType() == TileTyped.TileEffectType.JUMP_PAD) {
+                        jumpPads.add(new JumpPad(tileX, tileY, tileSize, tileSize));
                     }
                     else if (tileType.isCollidable()) {
                         collisionRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
@@ -127,6 +132,12 @@ public class TiledGameMap extends GameMap {
     @Override
     public List<CrumblingBlock> getCrumblingBlocks() {
         return crumblingBlocks;
+    }
+
+    // Додаємо гетер для JumpPad
+    @Override
+    public List<JumpPad> getJumpPads() {
+        return jumpPads;
     }
 
     /**
