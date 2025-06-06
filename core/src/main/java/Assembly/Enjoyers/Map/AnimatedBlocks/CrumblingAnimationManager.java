@@ -1,4 +1,4 @@
-package Assembly.Enjoyers.Map;
+package Assembly.Enjoyers.Map.AnimatedBlocks;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
