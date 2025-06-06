@@ -1,5 +1,6 @@
 package Assembly.Enjoyers;
 
+import Assembly.Enjoyers.Screens.LevelsScreen;
 import Assembly.Enjoyers.Screens.MainMenuScreen;
 import Assembly.Enjoyers.Screens.SettingsScreen;
 import com.badlogic.gdx.Game;
@@ -24,6 +25,11 @@ public class MainGame extends Game {
     /** Екран налаштувань гри */
     public SettingsScreen settingsScreen;
 
+    /**
+     * Екран вибору рівнів.
+     */
+    public LevelsScreen levelsScreen;
+
     private Sound buttonPressed;
     private float volume;
 
@@ -36,6 +42,7 @@ public class MainGame extends Game {
 
         mainMenuScreen = new MainMenuScreen(this);
         settingsScreen = new SettingsScreen(this);
+        levelsScreen = new LevelsScreen(this);
 
         buttonPressed = audio.newSound(files.internal("sounds/button.mp3"));
         loadVolume();

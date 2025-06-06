@@ -20,8 +20,8 @@ public class Player {
     // --- Sprite ---
     private final Texture texture;
     public Sprite sprite;
-    private Rectangle hitBox;
-    private Sprite corpse;
+    private final Rectangle hitBox;
+    private final Sprite corpse;
     private final float hitBoxXOffset = 55f;
     private final float hitBoxYOffset = 22f;
     private PlayerState currentState = PlayerState.IDLE;
@@ -61,29 +61,33 @@ public class Player {
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     // --- Respawn ---
-    private float respawnX = 920;
-    private float respawnY = 450;
+    private final float respawnX;
+    private final float respawnY;
 
     // --- Death ---
     private boolean isDead = false;
     private float deathTimer = 0f;
     private final float deathDelay;
+    private final DeathListener deathListener;
 
     //endregion
 
     /**
      * Конструктор персонажа, ініціалізує текстуру, спрайт та хитбокс.
      */
-    public Player(){
+    public Player(DeathListener deathListener, float respawnX, float respawnY) {
         texture = new Texture("player\\adventurer-die-06.png");
         sprite = new Sprite(texture);
         sprite.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
+        this.respawnX = respawnX;
+        this.respawnY = respawnY;
         sprite.setPosition(respawnX, respawnY);
         hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-
         corpse = new Sprite(texture);
         corpse.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
         corpse.setAlpha(0);
+
+        this.deathListener = deathListener;
 
         deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
     }
@@ -102,6 +106,13 @@ public class Player {
     }
 
     /**
+     * @return Хідбокс гравця.
+     */
+    public Rectangle getHitBox(){
+        return hitBox;
+    }
+
+    /**
      * Основна функція оновлення руху та взаємодії з рівнем.
      * @param bounds список прямокутників колізій.
      * @param spikes список колізій шипів.
@@ -114,7 +125,10 @@ public class Player {
 
         float moveX = handleHorizontalInput(delta);
         dash(delta);
-        applyGravity(delta);
+        if (!isDashing || (dashXVelocity == 0 && dashYVelocity < 0))
+            applyGravity(delta);
+        else
+            velocityY = 0;
 
         updateHitBox();
         onGround = checkFeetTouching(bounds);
@@ -196,6 +210,8 @@ public class Player {
             isDashing = false;
             dashXVelocity = 0;
             dashYVelocity = 0;
+
+            deathListener.onDeath();
 
             soundManager.play(PlayerState.DYING);
             animationManager.resetStateTime();
@@ -466,8 +482,8 @@ public class Player {
             float dx = 0, dy = 0;
             if (input.isKeyPressed(Keys.D)) dx = 1;
             if (input.isKeyPressed(Keys.A)) dx = -1;
-            if (input.isKeyPressed(Keys.W)) dy = 1;
-            if (input.isKeyPressed(Keys.S)) dy = -1;
+            if (input.isKeyPressed(Keys.W)) dy = 1f;
+            if (input.isKeyPressed(Keys.S)) dy = -1f;
 
             if (dx == 0 && dy == 0)
                 dx = facingRight ? 1 : -1;
@@ -479,7 +495,7 @@ public class Player {
             }
 
             dashXVelocity = dx * dashForce;
-            dashYVelocity = dy * dashForce;
+            dashYVelocity = (dy * 3 / 4) * dashForce;
             isDashing = true;
             dashCount--;
 
