@@ -5,6 +5,8 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
+import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
@@ -12,20 +14,33 @@ import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.Timer;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
 
+/**
+ * Екран налаштувань гри.
+ * Дозволяє змінювати гучність музики та звуків, зберігати зміни та повертатись до головного меню.
+ */
 public class SettingsScreen implements Screen {
     private MainGame game;
     private final Stage stage;
     private final Skin skin;
     private final Preferences prefs;
 
+    private final Texture background;
+
     private float initialMusic;
     private float initialSound;
 
-
+    /**
+     * Конструктор екрана налаштувань.
+     * Ініціалізує сцену, завантажує збережені налаштування та створює UI.
+     *
+     * @param game основний клас гри
+     */
     public SettingsScreen(MainGame game) {
         this.game = game;
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
+
+        background = new Texture("temp/background.jpg");
 
         skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
         prefs = Gdx.app.getPreferences("settings");
@@ -33,15 +48,17 @@ public class SettingsScreen implements Screen {
         createUI();
     }
 
-
+    /**
+     * Створює інтерфейс користувача: слайдери гучності, кнопки збереження та повернення назад.
+     */
     private void createUI() {
         Table table = new Table();
         table.setFillParent(true);
         table.center();
         stage.addActor(table);
 
-        Label musicLabel = new Label("Гучність музики", skin);
-        Label soundLabel = new Label("Гучність звуків", skin);
+        Label musicLabel = new Label("Гучнiсть музики", skin);
+        Label soundLabel = new Label("Гучнiсть звукiв", skin);
         Label musicValueLabel = new Label("", skin);
         Label soundValueLabel = new Label("", skin);
 
@@ -53,16 +70,16 @@ public class SettingsScreen implements Screen {
         initialSound = prefs.getFloat("soundVolume", 0.5f);
         musicSlider.setValue(initialMusic);
         soundSlider.setValue(initialSound);
-        musicValueLabel.setText(String.format("%.2f", initialMusic));
-        soundValueLabel.setText(String.format("%.2f", initialSound));
+        musicValueLabel.setText(Math.round(initialMusic * 100) + "%");
+        soundValueLabel.setText(Math.round(initialSound * 100) + "%");
 
         // Обробка зміни значень
         musicSlider.addListener(event -> {
-            musicValueLabel.setText(String.format("%.2f", musicSlider.getValue()));
+            musicValueLabel.setText(Math.round(musicSlider.getValue() * 100) + "%");
             return false;
         });
         soundSlider.addListener(event -> {
-            soundValueLabel.setText(String.format("%.2f", soundSlider.getValue()));
+            soundValueLabel.setText(Math.round(soundSlider.getValue() * 100) + "%");
             return false;
         });
 
@@ -72,16 +89,19 @@ public class SettingsScreen implements Screen {
         final Label savedLabel = new Label("Збережено!", skin);
         savedLabel.setVisible(false);
         stage.addActor(savedLabel);
-        savedLabel.setPosition(20, 20);
+        savedLabel.setPosition(20, 50);
 
         saveButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                game.buttonPress();
                 initialMusic = musicSlider.getValue();
                 prefs.putFloat("musicVolume", musicSlider.getValue());
                 initialSound = soundSlider.getValue();
                 prefs.putFloat("soundVolume", soundSlider.getValue());
                 prefs.flush();
+
+                game.loadVolume();
 
                 savedLabel.setVisible(true);
                 Timer.schedule(new Timer.Task() {
@@ -96,6 +116,7 @@ public class SettingsScreen implements Screen {
         backButton.addListener(new ClickListener() {
             @Override
             public void clicked(InputEvent event, float x, float y) {
+                game.buttonPress();
                 boolean musicChanged = Math.abs(musicSlider.getValue() - initialMusic) > 0.01f;
                 boolean soundChanged = Math.abs(soundSlider.getValue() - initialSound) > 0.01f;
 
@@ -107,7 +128,7 @@ public class SettingsScreen implements Screen {
                             }
                         }
                     };
-                    dialog.text("Ви не зберегли зміни. Вийти без збереження?");
+                    dialog.text("Ви не зберегли змiни. Вийти без збереження?");
                     dialog.button("Так", true);
                     dialog.button("Нi", false);
                     dialog.show(stage);
@@ -130,35 +151,62 @@ public class SettingsScreen implements Screen {
     }
 
 
-
+    /**
+     * Викликається при показі екрана. Встановлює сцену як обробник вводу.
+     */
     @Override
     public void show() {
         Gdx.input.setInputProcessor(stage);
     }
 
+    /**
+     * Рендерить сцену налаштувань.
+     *
+     * @param delta час між кадрами
+     */
     @Override
     public void render(float delta) {
         Gdx.gl.glClearColor(0, 0, 0, 1);
         Gdx.gl.glClear(GL20.GL_COLOR_BUFFER_BIT);
+
+        game.batch.begin();
+        game.batch.draw(background, 0, 0, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        game.batch.end();
+
         stage.act(delta);
         stage.draw();
     }
 
+
+    /**
+     * Оновлення розмірів при зміні розміру вікна.
+     * @param width нова ширина
+     * @param height нова висота
+     */
     @Override
     public void resize(int width, int height) {
-
+        stage.getViewport().update(width, height, true);
     }
 
+    /**
+     * Викликається при паузі (не використовується).
+     */
     @Override
     public void pause() {
 
     }
 
+    /**
+     * Викликається при відновленні (не використовується).
+     */
     @Override
     public void resume() {
 
     }
 
+    /**
+     * Викликається при приховуванні екрана. Скидає обробку вводу.
+     */
     @Override
     public void hide() {
         if (Gdx.input.getInputProcessor() == stage)
@@ -166,6 +214,7 @@ public class SettingsScreen implements Screen {
 
     }
 
+    /// Очищує ресурси сцени та скіна.
     @Override
     public void dispose() {
         skin.dispose();

@@ -20,8 +20,8 @@ public class Player {
     // --- Sprite ---
     private final Texture texture;
     public Sprite sprite;
-    private Sprite corpse;
-    private Rectangle hitBox;
+    private final Rectangle hitBox;
+    private final Sprite corpse;
     private final float hitBoxXOffset = 55f;
     private final float hitBoxYOffset = 22f;
     private PlayerState currentState = PlayerState.IDLE;
@@ -49,7 +49,7 @@ public class Player {
     private float dashXVelocity = 0;
     private float dashYVelocity = 0;
     private final float dashForce = 1000f;
-    private final float dashDecay = 0.98f;
+    private final float dashDecayRaw = 0.98f;
     private final float dashMinForce = 400f;
     private int dashCount = 1;
 
@@ -61,29 +61,33 @@ public class Player {
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
     // --- Respawn ---
-    private float respawnX = 920;
-    private float respawnY = 450;
+    private final float respawnX;
+    private final float respawnY;
 
     // --- Death ---
     private boolean isDead = false;
     private float deathTimer = 0f;
     private final float deathDelay;
+    private final DeathListener deathListener;
 
     //endregion
 
     /**
      * Конструктор персонажа, ініціалізує текстуру, спрайт та хитбокс.
      */
-    public Player(){
+    public Player(DeathListener deathListener, float respawnX, float respawnY) {
         texture = new Texture("player\\adventurer-die-06.png");
         sprite = new Sprite(texture);
         sprite.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
+        this.respawnX = respawnX;
+        this.respawnY = respawnY;
         sprite.setPosition(respawnX, respawnY);
         hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-
         corpse = new Sprite(texture);
         corpse.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
         corpse.setAlpha(0);
+
+        this.deathListener = deathListener;
 
         deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
     }
@@ -97,40 +101,34 @@ public class Player {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(hitBox.x, hitBox.y, hitBox.width, hitBox.height);
+        shapeRenderer.rect(corpse.getX() + hitBoxXOffset, corpse.getY(), corpse.getWidth() - 1.7f * hitBoxXOffset, corpse.getHeight() - 2.2f * hitBoxYOffset);
         shapeRenderer.end();
     }
 
     /**
+     * @return Хідбокс гравця.
+     */
+    public Rectangle getHitBox(){
+        return hitBox;
+    }
+
+    /**
      * Основна функція оновлення руху та взаємодії з рівнем.
-     * @param bounds список прямокутників колізій
+     * @param bounds список прямокутників колізій.
+     * @param spikes список колізій шипів.
+     * @param delta час між кадрами
      */
     public void move(List<Rectangle> bounds, List<Rectangle> spikes, float delta) {
         currentState = PlayerState.IDLE;
 
-        if (isDead) {
-            currentState = PlayerState.DYING;
-            deathTimer -= delta;
-            if (deathTimer <= 0f) {
-                corpse.setPosition(sprite.getX(), sprite.getY() - 10);
-                corpse.setAlpha(1f);
-                sprite.setPosition(respawnX, respawnY);
-                updateHitBox();
-                isDead = false;
-            }
-            return;
-        }
-
-        if (isDie(spikes)) {
-            soundManager.play(PlayerState.DYING);
-            animationManager.resetStateTime();
-            isDead = true;
-            deathTimer = deathDelay;
-            return;
-        }
+        if (handleDeath(spikes,delta)) return;
 
         float moveX = handleHorizontalInput(delta);
-        dash();
-        applyGravity(delta);
+        dash(delta);
+        if (!isDashing || (dashXVelocity == 0 && dashYVelocity < 0))
+            applyGravity(delta);
+        else
+            velocityY = 0;
 
         updateHitBox();
         onGround = checkFeetTouching(bounds);
@@ -151,10 +149,84 @@ public class Player {
         playerStateHandler(moveX, delta);
     }
 
-    public void drawCorpse(SpriteBatch batch) {
-        corpse.draw(batch);
+    /**
+     * Викликає смерть у гравця, задля його переміщення на початок рівня.
+     */
+    public void respawn(){
+        isDashing = false;
+        dashXVelocity = 0;
+        dashYVelocity = 0;
+
+        soundManager.play(PlayerState.DYING);
+        animationManager.resetStateTime();
+        isDead = true;
+        deathTimer = deathDelay;
     }
 
+    /**
+     * Малює тіло померлого гравця, з гравітацією.
+     * @param batch Малювання сцени.
+     * @param bounds список колізій.
+     * @param delta час між кадрами
+     */
+    public void drawCorpse(SpriteBatch batch, List<Rectangle> bounds, float delta) {
+        corpse.draw(batch);
+
+        Rectangle hitbox = new Rectangle(corpse.getX() + hitBoxXOffset, corpse.getY(), corpse.getWidth() - 1.7f * hitBoxXOffset, corpse.getHeight() - 2.2f * hitBoxYOffset);
+        boolean isOnGround = false;
+        for (Rectangle bound : bounds) {
+            if(hitbox.overlaps(bound)) {
+                isOnGround = true;
+                break;
+            }
+        }
+
+        if (!isOnGround) {
+            corpse.translateY(-moveSpeed * delta);
+        }
+    }
+
+    /**
+     * Обробляє логіку смерті гравця: зіткнення зі шипами, відтворення анімації, респавн.
+     * @param spikes список хітбоксів шипів
+     * @param delta час між кадрами
+     * @return true, якщо гравець помер або очікує респавну
+     */
+    private boolean handleDeath(List<Rectangle> spikes, float delta) {
+        if (isDead) {
+            currentState = PlayerState.DYING;
+            deathTimer -= delta;
+            if (deathTimer <= 0f) {
+                corpse.setPosition(sprite.getX(), sprite.getY() - 10);
+                corpse.setAlpha(1f);
+                sprite.setPosition(respawnX, respawnY);
+                updateHitBox();
+                isDead = false;
+            }
+            return true;
+        }
+
+        if (isDie(spikes)) {
+            isDashing = false;
+            dashXVelocity = 0;
+            dashYVelocity = 0;
+
+            deathListener.onDeath();
+
+            soundManager.play(PlayerState.DYING);
+            animationManager.resetStateTime();
+            isDead = true;
+            deathTimer = deathDelay;
+            return true;
+        }
+
+        return false;
+    }
+    /**
+     * Перевіряє чи гравець дотикається до небезпечних елементів.
+     * @param spikes Список хідбоксів шипів.
+     * @return true, якщо гравець дотикається до небезпечних елементів.
+     */
     private boolean isDie(List<Rectangle> spikes) {
         for (Rectangle spike : spikes) {
             if (hitBox.overlaps(spike)) {
@@ -391,8 +463,9 @@ public class Player {
     /**
      * Обробляє деш у різні сторони (LMB), з лімітом на кількість.
      */
-    private void dash(){
+    private void dash(float delta) {
         if (isDashing) {
+            float dashDecay = (float) (Math.pow(dashDecayRaw, delta * 60));
             dashXVelocity *= dashDecay;
             dashYVelocity *= dashDecay;
 
@@ -409,8 +482,8 @@ public class Player {
             float dx = 0, dy = 0;
             if (input.isKeyPressed(Keys.D)) dx = 1;
             if (input.isKeyPressed(Keys.A)) dx = -1;
-            if (input.isKeyPressed(Keys.W)) dy = 1;
-            if (input.isKeyPressed(Keys.S)) dy = -1;
+            if (input.isKeyPressed(Keys.W)) dy = 1f;
+            if (input.isKeyPressed(Keys.S)) dy = -1f;
 
             if (dx == 0 && dy == 0)
                 dx = facingRight ? 1 : -1;
@@ -422,7 +495,7 @@ public class Player {
             }
 
             dashXVelocity = dx * dashForce;
-            dashYVelocity = dy * dashForce;
+            dashYVelocity = (dy * 3 / 4) * dashForce;
             isDashing = true;
             dashCount--;
 
@@ -531,6 +604,9 @@ public class Player {
         animationManager.dispose();
     }
 
+    /**
+     * Зупиняє звук лазання по стіні під час паузи
+     */
     public void stopSound(){
         soundManager.playWallSlideRepeatable(false);
     }
