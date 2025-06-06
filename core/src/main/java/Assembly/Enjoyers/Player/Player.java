@@ -97,12 +97,9 @@ public class Player {
         float currentVelocityX = velocityX;
 
         dashYVelocity = 0;
-        velocityY = 900f;
+        velocityY = 950f;
 
         velocityX = currentVelocityX;
-
-        currentState = PlayerState.JUMPING;
-        soundManager.play(PlayerState.JUMPING);
     }
 
     /**

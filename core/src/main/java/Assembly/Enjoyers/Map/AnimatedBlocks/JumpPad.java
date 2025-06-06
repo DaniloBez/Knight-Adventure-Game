@@ -1,5 +1,6 @@
 package Assembly.Enjoyers.Map.AnimatedBlocks;
 
+import Assembly.Enjoyers.Utils.EnvironmentSoundManager;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 
@@ -16,6 +17,7 @@ public class JumpPad {
     private final JumpPadAnimationManager animationManager;
     /** Прапорець, що вказує на активований стан джамп-пада. */
     private boolean isTriggered = false;
+    private final EnvironmentSoundManager soundManager = new EnvironmentSoundManager();
 
     /**
      * Створює новий джамп-пад із заданими параметрами.
@@ -37,6 +39,7 @@ public class JumpPad {
     public void trigger() {
         if (!isTriggered) {
             animationManager.startAnimation();
+            soundManager.playJumpPad();
             isTriggered = true;
         }
     }
