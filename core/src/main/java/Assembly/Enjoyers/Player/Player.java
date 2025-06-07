@@ -64,9 +64,6 @@ public class Player {
     private final float respawnX;
     private final float respawnY;
 
-    // For Crumbling Block Level
-//    private float respawnX = 9200;
-//    private float respawnY = 1700;
 
     // --- Death ---
     private boolean isDead = false;
@@ -101,7 +98,7 @@ public class Player {
         float currentVelocityX = velocityX;
 
         dashYVelocity = 0;
-        velocityY = 950f;
+        velocityY = 1200f;
 
         velocityX = currentVelocityX;
     }
@@ -509,7 +506,7 @@ public class Player {
             }
 
             dashXVelocity = dx * dashForce;
-            dashYVelocity = (dy * 3 / 4) * dashForce;
+            dashYVelocity = (dy * 3 / 4)  * dashForce;
             if(dashYVelocity == 0)
                 dashXVelocity *= (float) 3 /4;
             isDashing = true;

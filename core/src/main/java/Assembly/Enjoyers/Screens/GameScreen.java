@@ -25,6 +25,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -86,9 +87,31 @@ public class GameScreen implements Screen {
         staticBounds = gameMap.getCollisionRects();
         crumblingBlocks = gameMap.getCrumblingBlocks();
         spikes = gameMap.getSpikes();
+
+     // For Crumbling Block Level
+//         float respawnX = 9200;
+//         float respawnY = 1700;
+
+//        For JumpPad Level
+//        float respawnX = 12500;
+//        float respawnY = 700;
+
+//        For Start Level
         final float respawnX = 920;
         final float respawnY = 450;
-        endOfTheLevel = new Rectangle(10000, 370, 300, 300);
+
+        //        For Final Level Start
+//        final float respawnX = 17000;
+//        final float respawnY = 2300;
+
+        //        For Final Level Jump Pad
+//        final float respawnX = 23600;
+//        final float respawnY = 2700;
+
+        //        End for Final Level
+//        final float respawnX = 26300;
+//        final float respawnY = 1200;
+        endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
 
         player = new Player(this::incDeath, respawnX, respawnY);
         MusicManager.init();
@@ -207,7 +230,7 @@ public class GameScreen implements Screen {
             for (JumpPad jumpPad : gameMap.getJumpPads()) {
                 jumpPad.update(delta);
 
-                if (player.getBounds().overlaps(jumpPad.getTriggerBounds())) {
+                if (player.getHitBox().overlaps(jumpPad.getTriggerBounds())) {
 
                     if (!jumpPad.isTriggered()) {
                         jumpPad.trigger();
@@ -217,7 +240,6 @@ public class GameScreen implements Screen {
             }
 
             player.move(activeCollisions, spikes, delta);
-            player.move(bounds, spikes, delta);
             playTime += delta;
 
             if (player.getHitBox().overlaps(endOfTheLevel)) {
@@ -310,8 +332,8 @@ public class GameScreen implements Screen {
             game.batch.draw(frame, drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height);
         }
 
-        player.drawCorpse(game.batch);
-        player.drawCorpse(game.batch, bounds, delta);
+
+        player.drawCorpse(game.batch, staticBounds, delta);
     }
 
     /**
