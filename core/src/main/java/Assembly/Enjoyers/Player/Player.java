@@ -496,6 +496,8 @@ public class Player {
 
             dashXVelocity = dx * dashForce;
             dashYVelocity = (dy * 3 / 4) * dashForce;
+            if(dashYVelocity == 0)
+                dashXVelocity *= (float) 3 /4;
             isDashing = true;
             dashCount--;
 
