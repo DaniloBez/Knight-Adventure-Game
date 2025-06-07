@@ -7,9 +7,12 @@ import Assembly.Enjoyers.Map.GameMap;
 import Assembly.Enjoyers.Map.TiledGameMap;
 import Assembly.Enjoyers.Utils.MusicManager;
 import Assembly.Enjoyers.Player.Player;
+import Assembly.Enjoyers.Utils.TimeConverter;
 import com.badlogic.gdx.*;
 import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.Stage;
@@ -22,9 +25,12 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Основний ігровий екран, на якому відображається рівень, гравець та логіка паузи.
+ * Обробляє рендеринг, логіку руху, обробку паузи та інтерфейс паузи.
+ */
 public class GameScreen implements Screen {
     //region variables
     private MainGame game;
@@ -43,16 +49,35 @@ public class GameScreen implements Screen {
 
     private Stage pauseStage;
     private Skin skin;
+    private BitmapFont font;
     private InputProcessor inputProcessor;
+    private Rectangle endOfTheLevel;
+
+    private float playTime; // Таймер гри в секундах
+    private final String levelId;
+    private final Preferences pref;
+    private int deathCount;
     //endregion
 
-    public GameScreen(MainGame game) {
+    /**
+     * Створює новий ігровий екран.
+     * @param game головний об'єкт гри
+     */
+    public GameScreen(MainGame game, String levelId) {
         this.game = game;
-        setUpGame();
+        this.levelId = levelId;
+        pref = Gdx.app.getPreferences("Levels");
+        deathCount = 0;
 
+        playTime = 0f;
+
+        setUpGame();
         createUI();
     }
 
+    /**
+     * Ініціалізує ігрові об'єкти, карту, колізії, гравця і музику.
+     */
     private void setUpGame(){
         camera = new OrthographicCamera();
         viewport = new StretchViewport(1920, 1080, camera);
@@ -61,18 +86,24 @@ public class GameScreen implements Screen {
         staticBounds = gameMap.getCollisionRects();
         crumblingBlocks = gameMap.getCrumblingBlocks();
         spikes = gameMap.getSpikes();
+        final float respawnX = 920;
+        final float respawnY = 450;
+        endOfTheLevel = new Rectangle(10000, 370, 300, 300);
 
-        player = new Player();
+        player = new Player(this::incDeath, respawnX, respawnY);
         MusicManager.init();
     }
 
+    /**
+     * Створює сцену паузи та інтерфейс із кнопками.
+     */
     private void createUI() {
         skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        font = skin.getFont("default-font");
+        font.getData().setScale(2f);
         pauseStage = new Stage(new ScreenViewport());
 
         inputProcessor = new InputMultiplexer(pauseStage);
-
-        Gdx.input.setInputProcessor(inputProcessor);
 
         Table table = new Table();
         table.setFillParent(true);
@@ -96,24 +127,61 @@ public class GameScreen implements Screen {
         buttonContinue.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeListener.ChangeEvent event, Actor actor) {
+                game.buttonPress();
                 resume();
             }
         });
         buttonRestart.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                //TODO
+                game.buttonPress();
+                incDeath();
+                resume();
+                player.respawn();
             }
         });
 
         buttonMainMenu.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
+                game.buttonPress();
+                saveDeath();
                 game.setScreen(game.mainMenuScreen);
             }
         });
     }
 
+    /**
+     * Збільшує кількість смертей.
+     */
+    public void incDeath(){
+        deathCount++;
+    }
+
+    /**
+     * Зберігає дані про смерть у файл.
+     */
+    private void saveDeath(){
+        final int prevDeathCount = pref.getInteger(levelId + "Deaths", 0);
+        pref.putInteger(levelId + "Deaths", deathCount + prevDeathCount);
+        pref.flush();
+    }
+
+    /**
+     * Зберігає дані про час у файл.
+     */
+    private void saveTime(){
+        final float bestTime = pref.getFloat(levelId + "BestTime", 0f);
+        if (bestTime > playTime || bestTime == 0) {
+            pref.putFloat(levelId + "BestTime", playTime);
+            pref.flush();
+        }
+    }
+
+    /**
+     * Основний метод рендерингу, викликається кожен кадр.
+     * @param delta час між кадрами
+     */
     @Override
     public void render(float delta) {
         delta = Math.min(delta, 1/60f);
@@ -149,6 +217,13 @@ public class GameScreen implements Screen {
             }
 
             player.move(activeCollisions, spikes, delta);
+            player.move(bounds, spikes, delta);
+            playTime += delta;
+
+            if (player.getHitBox().overlaps(endOfTheLevel)) {
+                finishLevel();
+                return;
+            }
 
             camera.position.set(
                 player.sprite.getX() + player.sprite.getWidth() / 2,
@@ -168,10 +243,18 @@ public class GameScreen implements Screen {
         game.batch.setProjectionMatrix(camera.combined);
         game.batch.begin();
         draw(delta);
+
+        String timeStr = TimeConverter.formatTime(playTime);
+        font.draw(game.batch, "Час гри: " + timeStr, camera.position.x + viewport.getWorldWidth() / 3, camera.position.y + viewport.getWorldHeight()/2 - 20);
+        if (isPaused) {
+            font.draw(game.batch, "Смертей: " + deathCount, camera.position.x + viewport.getWorldWidth() / 3, camera.position.y + viewport.getWorldHeight()/2 - 60);
+        }
+
         game.batch.end();
 
         player.drawStaminaBar(camera);
 
+        drawEndOfTheLevel();
 
         if (isPaused) {
             pauseStage.act(delta);
@@ -179,6 +262,34 @@ public class GameScreen implements Screen {
         }
     }
 
+    /**
+     *
+     */
+    @Deprecated
+    private void drawEndOfTheLevel(){
+        ShapeRenderer shapeRenderer = new ShapeRenderer();
+        shapeRenderer.setProjectionMatrix(camera.combined);
+        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.setColor(Color.GREEN);
+        shapeRenderer.rect(endOfTheLevel.x, endOfTheLevel.y, endOfTheLevel.width, endOfTheLevel.height);
+        shapeRenderer.end();
+        shapeRenderer.dispose();
+    }
+
+    private void finishLevel() {
+        saveDeath();
+        saveTime();
+        Gdx.input.setCursorCatched(false);
+
+        game.setScreen(new FinishScreen(game, deathCount, playTime));
+
+        this.dispose();
+    }
+
+    /**
+     * Малює гравця та тіло після смерті.
+     * @param delta час між кадрами
+     */
     private void draw(float delta) {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
@@ -200,11 +311,21 @@ public class GameScreen implements Screen {
         }
 
         player.drawCorpse(game.batch);
+        player.drawCorpse(game.batch, bounds, delta);
     }
 
+    /**
+     * Обробка зміни розміру вікна гри.
+     * @param width нова ширина
+     * @param height нова висота
+     */
     @Override public void resize(int width, int height) {
         viewport.update(width, height, true);
     }
+
+    /**
+     * Активує паузу гри.
+     */
     @Override public void pause() {
         MusicManager.pause();
         isPaused = true;
@@ -212,6 +333,10 @@ public class GameScreen implements Screen {
         Gdx.input.setInputProcessor(inputProcessor);
         Gdx.input.setCursorCatched(false);
     }
+
+    /**
+     * Відновлює гру з паузи.
+     */
     @Override public void resume() {
         MusicManager.resume();
         isPaused = false;
@@ -219,14 +344,27 @@ public class GameScreen implements Screen {
         Gdx.input.setCursorCatched(true);
     }
 
+    /** Викликається при приховуванні екрана. */
     @Override public void hide() {}
+
+    /**
+     * Очищення ресурсів після завершення екрану.
+     */
     @Override public void dispose() {
         player.dispose();
         gameMap.dispose();
         MusicManager.dispose();
 
+        pauseStage.dispose();
+        skin.dispose();
+        font.dispose();
+
         game = null;
     }
+
+    /**
+     * Викликається при показі екрана.
+     */
     @Override public void show() {
         Gdx.input.setCursorCatched(true);
     }

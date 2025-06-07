@@ -1,5 +1,6 @@
 package Assembly.Enjoyers.Player;
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 
 import java.util.EnumMap;
@@ -18,10 +19,14 @@ public class PlayerSoundManager {
 
     private long wallSlideSoundId = -1;
 
+    private final float volume;
+
     /**
      * Ініціалізує всі звукові ефекти для кожного стану персонажа.
      */
     public PlayerSoundManager(){
+        volume = Gdx.app.getPreferences("settings").getFloat("soundVolume", 0.5f);
+
         sounds.put(PlayerState.RUNNING, load("sounds\\steps.mp3"));
         cooldowns.put(PlayerState.RUNNING, 0.3f);
 
@@ -74,7 +79,7 @@ public class PlayerSoundManager {
         float cooldown = cooldowns.getOrDefault(state, 0f);
 
         if (timeLeft <= 0f) {
-            sound.play(1.0f);
+            sound.play(volume);
             timers.put(state, cooldown);
         }
     }
@@ -89,7 +94,7 @@ public class PlayerSoundManager {
 
         if (repeat) {
             if (wallSlideSoundId == -1) {
-                wallSlideSoundId = sound.loop(0.3f);
+                wallSlideSoundId = sound.loop(0.3f * volume);
             }
         } else {
             if (wallSlideSoundId != -1) {
