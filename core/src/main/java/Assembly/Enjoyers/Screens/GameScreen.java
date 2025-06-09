@@ -91,19 +91,19 @@ public class GameScreen implements Screen {
 
         switch (levelId) {
             case "levelId-1":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap();
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
                 break;
             case "levelId-2":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap();
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
                 break;
             case "levelId-3":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap();
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
