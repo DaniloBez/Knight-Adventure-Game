@@ -29,8 +29,8 @@ public class TiledGameMap extends GameMap {
     /**
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
      */
-    public TiledGameMap() {
-        tiledMap = new TmxMapLoader().load("maps/night_level/map.tmx");
+    public TiledGameMap(String mapPath) {
+        tiledMap = new TmxMapLoader().load(mapPath);
         tiledMapRender = new OrthogonalTiledMapRenderer(tiledMap);
 
         generateCollisionData();

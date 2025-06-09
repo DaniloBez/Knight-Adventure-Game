@@ -58,6 +58,11 @@ public class GameScreen implements Screen {
     private final String levelId;
     private final Preferences pref;
     private int deathCount;
+
+
+    // Координати респауну та кінця рівня
+    private float respawnX;
+    private float respawnY;
     //endregion
 
     /**
@@ -83,34 +88,34 @@ public class GameScreen implements Screen {
         camera = new OrthographicCamera();
         viewport = new StretchViewport(1920, 1080, camera);
 
-        gameMap = new TiledGameMap();
+        switch (levelId) {
+            case "levelId-1":
+                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                respawnX = 950;
+                respawnY = 400;
+                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                break;
+            case "levelId-2":
+                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                respawnX = 950;
+                respawnY = 400;
+                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                break;
+            case "levelId-3":
+                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                respawnX = 950;
+                respawnY = 400;
+                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown level ID: " + levelId);
+        }
+
         staticBounds = gameMap.getCollisionRects();
         crumblingBlocks = gameMap.getCrumblingBlocks();
         spikes = gameMap.getSpikes();
 
-     // For Crumbling Block Level
-//         float respawnX = 9200;
-//         float respawnY = 1700;
-
-//        For JumpPad Level
-//        float respawnX = 12500;
-//        float respawnY = 700;
-
-//        For Start Level
-        final float respawnX = 920;
-        final float respawnY = 450;
-
-        //        For Final Level Start
-//        final float respawnX = 17000;
-//        final float respawnY = 2300;
-
-        //        For Final Level Jump Pad
-//        final float respawnX = 23600;
-//        final float respawnY = 2700;
-
-        //        End for Final Level
-//        final float respawnX = 26300;
-//        final float respawnY = 1200;
         endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
 
         player = new Player(this::incDeath, respawnX, respawnY);
@@ -239,7 +244,7 @@ public class GameScreen implements Screen {
                 }
             }
 
-            player.move(activeCollisions, spikes, delta);
+            player.move(activeCollisions, spikes,crumblingBlocks ,delta);
             playTime += delta;
 
             if (player.getHitBox().overlaps(endOfTheLevel)) {
