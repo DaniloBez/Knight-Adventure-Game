@@ -1,6 +1,7 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
+import Assembly.Enjoyers.Utils.Assets;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
@@ -37,7 +38,7 @@ public class MainMenuScreen implements Screen {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
 
-        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin = Assets.get("skin/uiskin.json", Skin.class);
 
         createUI();
     }

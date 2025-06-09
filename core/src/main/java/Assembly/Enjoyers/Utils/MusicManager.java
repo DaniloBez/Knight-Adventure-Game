@@ -17,12 +17,12 @@ public class MusicManager {
     public static void init() {
         volume = Gdx.app.getPreferences("settings").getFloat("musicVolume", 0.5f);
 
-        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Creepy Forest.wav"));
+        backgroundMusic = Gdx.audio.newMusic(Gdx.files.internal("music/Creepy-Forest.ogg"));
         backgroundMusic.setLooping(true);
         backgroundMusic.setVolume(0.04f * volume);
         backgroundMusic.play();
 
-        windNoise = Gdx.audio.newMusic(Gdx.files.internal("music/wind.wav"));
+        windNoise = Gdx.audio.newMusic(Gdx.files.internal("music/wind.ogg"));
         windNoise.setLooping(true);
         windNoise.setVolume(0.4f * volume);
         windNoise.play();

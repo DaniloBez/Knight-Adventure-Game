@@ -1,8 +1,11 @@
 package Assembly.Enjoyers.Player;
 
+import Assembly.Enjoyers.Utils.Assets;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Animation;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
+import com.badlogic.gdx.utils.Array;
 
 import java.util.ArrayList;
 import java.util.EnumMap;
@@ -13,23 +16,25 @@ import java.util.List;
  * Зберігає анімації для кожного стану {@link PlayerState} та повертає відповідні кадри.
  */
 public class PlayerAnimationManager {
-    private final List<Texture> loadedTextures = new ArrayList<>();
     private final EnumMap<PlayerState, Animation<TextureRegion>> animations = new EnumMap<>(PlayerState.class);
     private float stateTime = 0;
+    private final TextureAtlas atlas;
 
     /**
      * Ініціалізує всі анімації для кожного стану персонажа.
      */
     public PlayerAnimationManager() {
-        animations.put(PlayerState.IDLE, loadAnimation("player/adventurer-idle-", 4, 0.2f));
-        animations.put(PlayerState.RUNNING, loadAnimation("player/adventurer-run-", 6, 0.15f));
-        animations.put(PlayerState.JUMPING, loadAnimation("player/adventurer-jump-", 2, 0.35f));
-        animations.put(PlayerState.FALLING, loadAnimation("player/adventurer-fall-", 2, 0.15f));
-        animations.put(PlayerState.DASHING, loadAnimation("player/adventurer-smrslt-", 4, 0.15f));
-        animations.put(PlayerState.WALL_CLIMBING, loadAnimation("player/adventurer-ladder-climb-", 4, 0.2f));
-        animations.put(PlayerState.WALL_SLIDING, loadAnimation("player/adventurer-wall-slide-", 2, 0.2f));
-        animations.put(PlayerState.WALL_GRABBING, loadAnimation("player/adventurer-crnr-grb-", 4, 0.3f));
-        animations.put(PlayerState.DYING, loadAnimation("player/adventurer-die-", 7, 0.2f));
+        this.atlas = Assets.get("player/adventurer.atlas", TextureAtlas.class);
+
+        animations.put(PlayerState.IDLE, loadAnimation("adventurer-idle-", 4, 0.2f));
+        animations.put(PlayerState.RUNNING, loadAnimation("adventurer-run-", 6, 0.15f));
+        animations.put(PlayerState.JUMPING, loadAnimation("adventurer-jump-", 2, 0.35f));
+        animations.put(PlayerState.FALLING, loadAnimation("adventurer-fall-", 2, 0.15f));
+        animations.put(PlayerState.DASHING, loadAnimation("adventurer-smrslt-", 4, 0.15f));
+        animations.put(PlayerState.WALL_CLIMBING, loadAnimation("adventurer-ladder-climb-", 4, 0.2f));
+        animations.put(PlayerState.WALL_SLIDING, loadAnimation("adventurer-wall-slide-", 2, 0.2f));
+        animations.put(PlayerState.WALL_GRABBING, loadAnimation("adventurer-crnr-grb-", 4, 0.3f));
+        animations.put(PlayerState.DYING, loadAnimation("adventurer-die-", 7, 0.2f));
     }
 
     /**
@@ -41,13 +46,11 @@ public class PlayerAnimationManager {
      * @return готова анімація
      */
     private Animation<TextureRegion> loadAnimation(String basePath, int frameCount, float frameDuration) {
-        TextureRegion[] frames = new TextureRegion[frameCount];
-        for (int i = 0; i < frameCount; i++) {
-            Texture texture = new Texture(basePath + String.format("%02d.png", i));
-            loadedTextures.add(texture);
-            frames[i] = new TextureRegion(texture);
-        }
-        return new Animation<>(frameDuration, frames);
+        Array<TextureRegion> frames = new Array<>();
+        for (int i = 0; i < frameCount; i++)
+            frames.add(atlas.findRegion(basePath + String.format("%02d", i)));
+
+        return new Animation<>(frameDuration, frames, Animation.PlayMode.LOOP);
     }
 
     /**
@@ -80,14 +83,5 @@ public class PlayerAnimationManager {
 
     public float getAnimationDuration(PlayerState state) {
         return animations.get(state).getAnimationDuration();
-    }
-
-    /**
-     * Звільняє ресурси (текстури анімацій)
-     */
-    public void dispose() {
-        for (Texture texture : loadedTextures) {
-            texture.dispose();
-        }
     }
 }

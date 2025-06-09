@@ -5,6 +5,7 @@ import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
 import Assembly.Enjoyers.Map.AnimatedBlocks.JumpPad;
 import Assembly.Enjoyers.Map.GameMap;
 import Assembly.Enjoyers.Map.TiledGameMap;
+import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Utils.MusicManager;
 import Assembly.Enjoyers.Player.Player;
 import Assembly.Enjoyers.Utils.TimeConverter;
@@ -56,7 +57,7 @@ public class GameScreen implements Screen {
 
     private float playTime; // Таймер гри в секундах
     private final String levelId;
-    private final Preferences pref;
+    private Preferences pref;
     private int deathCount;
 
 
@@ -73,9 +74,6 @@ public class GameScreen implements Screen {
         this.game = game;
         this.levelId = levelId;
         pref = Gdx.app.getPreferences("Levels");
-        deathCount = 0;
-
-        playTime = 0f;
 
         setUpGame();
         createUI();
@@ -85,24 +83,27 @@ public class GameScreen implements Screen {
      * Ініціалізує ігрові об'єкти, карту, колізії, гравця і музику.
      */
     private void setUpGame(){
+        deathCount = 0;
+        playTime = 0f;
+
         camera = new OrthographicCamera();
         viewport = new StretchViewport(1920, 1080, camera);
 
         switch (levelId) {
             case "levelId-1":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap();
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
                 break;
             case "levelId-2":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap();
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
                 break;
             case "levelId-3":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap();
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
@@ -126,7 +127,7 @@ public class GameScreen implements Screen {
      * Створює сцену паузи та інтерфейс із кнопками.
      */
     private void createUI() {
-        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin = Assets.get("skin/uiskin.json", Skin.class);
         font = skin.getFont("default-font");
         font.getData().setScale(2f);
         pauseStage = new Stage(new ScreenViewport());
@@ -175,6 +176,7 @@ public class GameScreen implements Screen {
                 game.buttonPress();
                 saveDeath();
                 game.setScreen(game.mainMenuScreen);
+                dispose();
             }
         });
     }
@@ -281,7 +283,7 @@ public class GameScreen implements Screen {
 
         player.drawStaminaBar(camera);
 
-        drawEndOfTheLevel();
+        //drawEndOfTheLevel();
 
         if (isPaused) {
             pauseStage.act(delta);
@@ -308,9 +310,7 @@ public class GameScreen implements Screen {
         saveTime();
         Gdx.input.setCursorCatched(false);
 
-        game.setScreen(new FinishScreen(game, deathCount, playTime));
-
-        this.dispose();
+        game.gameOver(new FinishScreen(game, deathCount, playTime));
     }
 
     /**
@@ -378,15 +378,14 @@ public class GameScreen implements Screen {
      * Очищення ресурсів після завершення екрану.
      */
     @Override public void dispose() {
+        game = null;
+
         player.dispose();
         gameMap.dispose();
-        MusicManager.dispose();
-
         pauseStage.dispose();
-        skin.dispose();
-        font.dispose();
 
-        game = null;
+        font.dispose();
+        MusicManager.dispose();
     }
 
     /**

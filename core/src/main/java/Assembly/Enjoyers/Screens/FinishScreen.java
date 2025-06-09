@@ -1,6 +1,7 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
+import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Utils.TimeConverter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
@@ -34,7 +35,7 @@ public class FinishScreen implements Screen {
     public FinishScreen(MainGame game, int deathCount, float playTime) {
         this.game = game;
         stage = new Stage(new ScreenViewport());
-        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin = Assets.get("skin/uiskin.json", Skin.class);
         background = new Texture(Gdx.files.internal("temp/background.jpg"));
 
         Table table = new Table(skin);
@@ -131,7 +132,6 @@ public class FinishScreen implements Screen {
     @Override
     public void dispose() {
         stage.dispose();
-        skin.dispose();
         background.dispose();
 
         game = null;
