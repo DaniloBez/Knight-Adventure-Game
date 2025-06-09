@@ -1,5 +1,8 @@
 package Assembly.Enjoyers.Map;
 
+import it.unimi.dsi.fastutil.ints.Int2ObjectMap;
+import it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap;
+
 import java.util.HashMap;
 
 /**
@@ -71,10 +74,10 @@ public enum TileTyped {
         return collidable;
     }
 
-    private static HashMap<Integer, TileTyped> tileMap;
+    private static Int2ObjectMap<TileTyped> tileMap;
 
     static {
-        tileMap = new HashMap<Integer, TileTyped>();
+        tileMap = new Int2ObjectOpenHashMap<>();
         for (TileTyped tileType : TileTyped.values()) {
             tileMap.put(tileType.getId(), tileType);
         }

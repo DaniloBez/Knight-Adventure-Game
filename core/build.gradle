@@ -12,4 +12,6 @@ dependencies {
   if(enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
   }
+
+  implementation 'it.unimi.dsi:fastutil:8.5.6'
 }

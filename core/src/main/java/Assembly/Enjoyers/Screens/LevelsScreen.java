@@ -1,6 +1,7 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
+import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Utils.TimeConverter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
@@ -39,7 +40,7 @@ public class LevelsScreen implements Screen {
         this.game = game;
         background = new Texture("temp/background.png");
         pref = Gdx.app.getPreferences("levels");
-        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin = Assets.get("skin/uiskin.json", Skin.class);
 
         deathLabels = new Label[levelCount];
         timeLabels = new Label[levelCount];
@@ -201,7 +202,6 @@ public class LevelsScreen implements Screen {
     @Override
     public void dispose() {
         background.dispose();
-        skin.dispose();
         stage.dispose();
 
         game = null;

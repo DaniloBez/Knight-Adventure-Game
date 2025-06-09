@@ -1,5 +1,6 @@
 package Assembly.Enjoyers.Player;
 
+import Assembly.Enjoyers.Utils.Assets;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.audio.Sound;
 
@@ -27,24 +28,24 @@ public class PlayerSoundManager {
     public PlayerSoundManager(){
         volume = Gdx.app.getPreferences("settings").getFloat("soundVolume", 0.5f);
 
-        sounds.put(PlayerState.RUNNING, load("sounds\\steps.mp3"));
+        sounds.put(PlayerState.RUNNING, load("sounds/steps.ogg"));
         cooldowns.put(PlayerState.RUNNING, 0.3f);
 
-        sounds.put(PlayerState.WALL_CLIMBING, load("sounds\\climb.mp3"));
+        sounds.put(PlayerState.WALL_CLIMBING, load("sounds/climb.ogg"));
         cooldowns.put(PlayerState.WALL_CLIMBING, 0.5f);
 
-        sounds.put(PlayerState.DASHING, load("sounds\\dash.wav"));
+        sounds.put(PlayerState.DASHING, load("sounds/dash.ogg"));
         cooldowns.put(PlayerState.DASHING, 0.1f);
 
-        sounds.put(PlayerState.LANDING, load("sounds\\land.wav"));
+        sounds.put(PlayerState.LANDING, load("sounds/land.ogg"));
         cooldowns.put(PlayerState.LANDING, 0.2f);
 
-        sounds.put(PlayerState.WALL_SLIDING, load("sounds\\wallSlide.wav"));
+        sounds.put(PlayerState.WALL_SLIDING, load("sounds/wallSlide.ogg"));
 
-        sounds.put(PlayerState.JUMPING, load("sounds\\jump.wav"));
+        sounds.put(PlayerState.JUMPING, load("sounds/jump.ogg"));
         cooldowns.put(PlayerState.JUMPING, 0.3f);
 
-        sounds.put(PlayerState.DYING, load("sounds\\death.mp3"));
+        sounds.put(PlayerState.DYING, load("sounds/death.ogg"));
 
         for(PlayerState state : PlayerState.values())
             timers.put(state, 0f);
@@ -56,7 +57,7 @@ public class PlayerSoundManager {
      * @return Sound
      */
     private Sound load(String path) {
-        return audio.newSound(files.internal(path));
+        return Assets.get(path, Sound.class);
     }
 
     /**
@@ -101,15 +102,6 @@ public class PlayerSoundManager {
                 sound.stop(wallSlideSoundId);
                 wallSlideSoundId = -1;
             }
-        }
-    }
-
-    /**
-     * Звільняє ресурси при закритті гри.
-     */
-    public void dispose() {
-        for (Sound sound : sounds.values()) {
-            sound.dispose();
         }
     }
 }

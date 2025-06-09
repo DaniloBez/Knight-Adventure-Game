@@ -1,10 +1,13 @@
 package Assembly.Enjoyers;
 
+import Assembly.Enjoyers.Screens.FinishScreen;
 import Assembly.Enjoyers.Screens.LevelsScreen;
 import Assembly.Enjoyers.Screens.MainMenuScreen;
 import Assembly.Enjoyers.Screens.SettingsScreen;
+import Assembly.Enjoyers.Utils.Assets;
 import com.badlogic.gdx.Game;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
@@ -38,16 +41,26 @@ public class MainGame extends Game {
      */
     @Override
     public void create() {
+        Assets.init();
+        Assets.finishLoading();
+
         batch = new SpriteBatch();
 
         mainMenuScreen = new MainMenuScreen(this);
         settingsScreen = new SettingsScreen(this);
         levelsScreen = new LevelsScreen(this);
 
-        buttonPressed = audio.newSound(files.internal("sounds/button.mp3"));
+        buttonPressed = audio.newSound(files.internal("sounds/button.ogg"));
         loadVolume();
 
         setScreen(mainMenuScreen);
+    }
+
+    public void gameOver(FinishScreen screen) {
+        Screen s = this.getScreen();
+        if (s != null) s.dispose();
+
+        this.setScreen(screen);
     }
 
     /**

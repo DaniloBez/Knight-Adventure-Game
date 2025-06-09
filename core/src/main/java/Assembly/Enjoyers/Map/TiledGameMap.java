@@ -1,5 +1,6 @@
 package Assembly.Enjoyers.Map;
 
+import Assembly.Enjoyers.Utils.Assets;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.maps.tiled.*;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -25,7 +26,7 @@ public class TiledGameMap extends GameMap {
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
      */
     public TiledGameMap() {
-        tiledMap = new TmxMapLoader().load("maps/night_level/map.tmx");
+        tiledMap = Assets.getLevel1();
         tiledMapRender = new OrthogonalTiledMapRenderer(tiledMap);
         generateCollisionData();
     }
@@ -56,7 +57,11 @@ public class TiledGameMap extends GameMap {
      */
     @Override
     public void dispose() {
-        tiledMap.dispose();
+        Assets.unloadLevel1();
+        //tiledMap.dispose();
+        collisionRects.clear();
+        spikeRects.clear();
+        tiledMapRender.dispose();
     }
 
 
