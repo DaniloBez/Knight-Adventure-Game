@@ -4,4 +4,5 @@
  <tile id="3" type="CastleFloor"/>
  <tile id="6" type="CastleSmoothBlock"/>
  <tile id="13" type="ToxicBlock"/>
+ <tile id="14" type="ToxicWoodBlock"/>
 </tileset>
