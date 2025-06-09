@@ -1,5 +1,6 @@
 package Assembly.Enjoyers.Player;
 
+import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
@@ -64,6 +65,7 @@ public class Player {
     private final float respawnX;
     private final float respawnY;
 
+
     // --- Death ---
     private boolean isDead = false;
     private float deathTimer = 0f;
@@ -92,6 +94,16 @@ public class Player {
         deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
     }
 
+
+    public void applyJumpPadBoost() {
+        float currentVelocityX = velocityX;
+
+        dashYVelocity = 0;
+        velocityY = 1200f;
+
+        velocityX = currentVelocityX;
+    }
+
     /**
      * Малює прямокутник хитбоксу навколо персонажа для відлагодження.
      * @param camera активна ігрова камера
@@ -118,10 +130,10 @@ public class Player {
      * @param spikes список колізій шипів.
      * @param delta час між кадрами
      */
-    public void move(List<Rectangle> bounds, List<Rectangle> spikes, float delta) {
+    public void move(List<Rectangle> bounds, List<Rectangle> spikes, List<CrumblingBlock> crumblingBlocks,float delta) {
         currentState = PlayerState.IDLE;
 
-        if (handleDeath(spikes,delta)) return;
+        if (handleDeath(spikes, crumblingBlocks, delta)) return;
 
         float moveX = handleHorizontalInput(delta);
         dash(delta);
@@ -192,7 +204,7 @@ public class Player {
      * @param delta час між кадрами
      * @return true, якщо гравець помер або очікує респавну
      */
-    private boolean handleDeath(List<Rectangle> spikes, float delta) {
+    private boolean handleDeath(List<Rectangle> spikes,List<CrumblingBlock> crumblingBlocks,  float delta) {
         if (isDead) {
             currentState = PlayerState.DYING;
             deathTimer -= delta;
@@ -206,7 +218,7 @@ public class Player {
             return true;
         }
 
-        if (isDie(spikes)) {
+        if (isDie(spikes, crumblingBlocks)) {
             isDashing = false;
             dashXVelocity = 0;
             dashYVelocity = 0;
@@ -227,12 +239,23 @@ public class Player {
      * @param spikes Список хідбоксів шипів.
      * @return true, якщо гравець дотикається до небезпечних елементів.
      */
-    private boolean isDie(List<Rectangle> spikes) {
+    private boolean isDie(List<Rectangle> spikes, List<CrumblingBlock> crumblingBlocks) {
         for (Rectangle spike : spikes) {
             if (hitBox.overlaps(spike)) {
                 return true;
             }
         }
+
+        for (CrumblingBlock crumblingBlock : crumblingBlocks) {
+            Rectangle block = crumblingBlock.getBounds();
+            if (crumblingBlock.isCrumbling() &&
+                (hitBox.x < block.x + block.width &&
+                hitBox.x + hitBox.width > block.x &&
+                hitBox.y < block.y + block.height &&
+                hitBox.y + hitBox.height > block.y))
+                    return true;
+        }
+
         return false;
     }
 
@@ -495,7 +518,9 @@ public class Player {
             }
 
             dashXVelocity = dx * dashForce;
-            dashYVelocity = (dy * 3 / 4) * dashForce;
+            dashYVelocity = (dy * 3 / 4)  * dashForce;
+            if(dashYVelocity == 0)
+                dashXVelocity *= (float) 3 /4;
             isDashing = true;
             dashCount--;
 
