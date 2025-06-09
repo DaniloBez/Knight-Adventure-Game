@@ -1,5 +1,7 @@
 package Assembly.Enjoyers.Map;
 
+import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
+import Assembly.Enjoyers.Map.AnimatedBlocks.JumpPad;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.math.Rectangle;
 import java.util.List;
@@ -51,6 +53,20 @@ public abstract class GameMap {
      * @return список прямокутників пасток
      */
     public abstract List<Rectangle> getSpikes();
+
+    /**
+     * Повертає список рухомих блоків, що розвалюються.
+     *
+     * @return список об'єктів CrumblingBlock на мапі
+     */
+    public abstract List<CrumblingBlock> getCrumblingBlocks();
+
+    /**
+     * Повертає список джамп-падів (стрибаючих платформ).
+     *
+     * @return список об'єктів JumpPad на мапі
+     */
+    public abstract List<JumpPad> getJumpPads();
 
     /**
      * Повертає тип плитки за координатами у сітці мапи.

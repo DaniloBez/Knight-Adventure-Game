@@ -1,6 +1,8 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
+import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
+import Assembly.Enjoyers.Map.AnimatedBlocks.JumpPad;
 import Assembly.Enjoyers.Map.GameMap;
 import Assembly.Enjoyers.Map.TiledGameMap;
 import Assembly.Enjoyers.Utils.Assets;
@@ -24,6 +26,7 @@ import com.badlogic.gdx.utils.viewport.ScreenViewport;
 import com.badlogic.gdx.utils.viewport.StretchViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -38,7 +41,10 @@ public class GameScreen implements Screen {
     private OrthographicCamera camera;
 
     private Player player;
-    private List<Rectangle> bounds, spikes;
+    private List<Rectangle> staticBounds;
+    private List<Rectangle> spikes;
+    private List<CrumblingBlock> crumblingBlocks;
+    private final List<Rectangle> activeCollisions = new ArrayList<>();
     private GameMap gameMap;
 
     private boolean isPaused = false;
@@ -53,6 +59,11 @@ public class GameScreen implements Screen {
     private final String levelId;
     private Preferences pref;
     private int deathCount;
+
+
+    // Координати респауну та кінця рівня
+    private float respawnX;
+    private float respawnY;
     //endregion
 
     /**
@@ -78,12 +89,35 @@ public class GameScreen implements Screen {
         camera = new OrthographicCamera();
         viewport = new StretchViewport(1920, 1080, camera);
 
-        gameMap = new TiledGameMap();
-        bounds = gameMap.getCollisionRects();
+        switch (levelId) {
+            case "levelId-1":
+                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                respawnX = 950;
+                respawnY = 400;
+                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                break;
+            case "levelId-2":
+                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                respawnX = 950;
+                respawnY = 400;
+                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                break;
+            case "levelId-3":
+                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                respawnX = 950;
+                respawnY = 400;
+                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                break;
+
+            default:
+                throw new IllegalArgumentException("Unknown level ID: " + levelId);
+        }
+
+        staticBounds = gameMap.getCollisionRects();
+        crumblingBlocks = gameMap.getCrumblingBlocks();
         spikes = gameMap.getSpikes();
-        final float respawnX = 920;
-        final float respawnY = 450;
-        endOfTheLevel = new Rectangle(10000, 370, 300, 300);
+
+        endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
 
         player = new Player(this::incDeath, respawnX, respawnY);
         MusicManager.init();
@@ -188,7 +222,31 @@ public class GameScreen implements Screen {
         }
 
         if (!isPaused) {
-            player.move(bounds, spikes, delta);
+            // Очистити попередній стан колізій
+            activeCollisions.clear();
+
+            activeCollisions.addAll(staticBounds);
+
+            for (CrumblingBlock block : crumblingBlocks) {
+                block.update(delta);
+                if (block.isActive() && block.getStage() < 5) {
+                    activeCollisions.add(block.getBounds());
+                }
+            }
+
+            for (JumpPad jumpPad : gameMap.getJumpPads()) {
+                jumpPad.update(delta);
+
+                if (player.getHitBox().overlaps(jumpPad.getTriggerBounds())) {
+
+                    if (!jumpPad.isTriggered()) {
+                        jumpPad.trigger();
+                        player.applyJumpPadBoost();
+                    }
+                }
+            }
+
+            player.move(activeCollisions, spikes,crumblingBlocks ,delta);
             playTime += delta;
 
             if (player.getHitBox().overlaps(endOfTheLevel)) {
@@ -262,7 +320,25 @@ public class GameScreen implements Screen {
     private void draw(float delta) {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
-        player.drawCorpse(game.batch, bounds, delta);
+
+        // Відображення зникаючих блоків
+        for (CrumblingBlock block : gameMap.getCrumblingBlocks()) {
+
+            if (!block.isDestroyed()) {
+                TextureRegion blockFrame = block.getCurrentFrame(delta);
+                Rectangle bounds = block.getBounds();
+                game.batch.draw(blockFrame, bounds.x, bounds.y, bounds.width, bounds.height);
+            }
+        }
+
+        for (JumpPad jumpPad : gameMap.getJumpPads()) {
+            TextureRegion frame = jumpPad.getCurrentFrame();
+            Rectangle drawBounds = jumpPad.getDrawBounds();
+            game.batch.draw(frame, drawBounds.x, drawBounds.y, drawBounds.width, drawBounds.height);
+        }
+
+
+        player.drawCorpse(game.batch, staticBounds, delta);
     }
 
     /**

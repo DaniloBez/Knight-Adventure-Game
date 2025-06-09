@@ -1,6 +1,8 @@
 package Assembly.Enjoyers.Map;
 
 import Assembly.Enjoyers.Utils.Assets;
+import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
+import Assembly.Enjoyers.Map.AnimatedBlocks.JumpPad;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.maps.tiled.*;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
@@ -10,6 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static Assembly.Enjoyers.Map.TileTyped.BoneSpike;
+import static Assembly.Enjoyers.Map.TileTyped.SteelSpike;
 
 /**
  * Реалізація мапи гри на основі Tiled (.tmx).
@@ -21,6 +24,8 @@ public class TiledGameMap extends GameMap {
 
     private final List<Rectangle> collisionRects = new ArrayList<>();
     private final List<Rectangle> spikeRects = new ArrayList<>();
+    private final List<CrumblingBlock> crumblingBlocks = new ArrayList<>();
+    private final List<JumpPad> jumpPads = new ArrayList<>();
 
     /**
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
@@ -28,6 +33,7 @@ public class TiledGameMap extends GameMap {
     public TiledGameMap() {
         tiledMap = Assets.getLevel1();
         tiledMapRender = new OrthogonalTiledMapRenderer(tiledMap);
+
         generateCollisionData();
     }
 
@@ -87,10 +93,20 @@ public class TiledGameMap extends GameMap {
                             int offset = tileSize / 8;
                             int size = tileSize / 4;
                             spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
-                        } else {
+                        } else if (tileType == SteelSpike) {
+                            int offset = tileSize / 8;
+                            int size = tileSize / 2;
+                            spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
+                        }
+                        else {
                             spikeRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
                         }
-                    } else if (tileType.isCollidable()) {
+                    } else if (tileType.getEffectType() == TileTyped.TileEffectType.CRUMBLING) {
+                        crumblingBlocks.add(new CrumblingBlock(tileX, tileY, tileSize, tileSize));
+                    } else if (tileType.getEffectType() == TileTyped.TileEffectType.JUMP_PAD) {
+                        jumpPads.add(new JumpPad(tileX, tileY, tileSize, tileSize));
+                    }
+                    else if (tileType.isCollidable()) {
                         collisionRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
                     }
                 }
@@ -116,6 +132,17 @@ public class TiledGameMap extends GameMap {
     @Override
     public List<Rectangle> getSpikes() {
         return spikeRects;
+    }
+
+    @Override
+    public List<CrumblingBlock> getCrumblingBlocks() {
+        return crumblingBlocks;
+    }
+
+    // Додаємо гетер для JumpPad
+    @Override
+    public List<JumpPad> getJumpPads() {
+        return jumpPads;
     }
 
     /**
