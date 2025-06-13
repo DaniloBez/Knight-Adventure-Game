@@ -90,19 +90,19 @@ public class GameScreen implements Screen {
 
         switch (levelId) {
             case "levelId-1":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap("maps/level1/map.tmx");
                 respawnX = 950;
                 respawnY = 400;
-                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                endOfTheLevel = new Rectangle(23420, 800, 60, 130);
                 break;
             case "levelId-2":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap("maps/level2/map.tmx");
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
                 break;
             case "levelId-3":
-                gameMap = new TiledGameMap("maps/night_level/map.tmx");
+                gameMap = new TiledGameMap("maps/level2/map.tmx");
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
@@ -115,8 +115,6 @@ public class GameScreen implements Screen {
         staticBounds = gameMap.getCollisionRects();
         crumblingBlocks = gameMap.getCrumblingBlocks();
         spikes = gameMap.getSpikes();
-
-        endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
 
         player = new Player(this::incDeath, respawnX, respawnY);
         MusicManager.init();

@@ -19,7 +19,7 @@ public class CrumblingAnimationManager {
      */
     public CrumblingAnimationManager() {
         for (int i = 0; i < 5; i++) {
-            Texture texture = new Texture("maps/night_level/crumble/crumble-" + (i+1) + ".png");
+            Texture texture = new Texture("maps/map_assets/crumble/crumble-" + (i+1) + ".png");
             loadedTextures.add(texture);
             frames[i] = new TextureRegion(texture);
         }

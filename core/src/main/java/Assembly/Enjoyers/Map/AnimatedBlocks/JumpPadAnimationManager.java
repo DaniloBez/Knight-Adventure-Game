@@ -29,7 +29,7 @@ public class JumpPadAnimationManager {
      */
     public JumpPadAnimationManager() {
         for (int i = 0; i < 8; i++) {
-            Texture texture = new Texture("maps/night_level/jump_pad/jump_pad_" + (i+1) + ".png");
+            Texture texture = new Texture("maps/map_assets/jump_pad/jump_pad_" + (i+1) + ".png");
             loadedTextures.add(texture);
             frames[i] = new TextureRegion(texture);
         }
