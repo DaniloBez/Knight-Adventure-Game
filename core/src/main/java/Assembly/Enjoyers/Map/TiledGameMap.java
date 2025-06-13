@@ -2,10 +2,16 @@ package Assembly.Enjoyers.Map;
 
 import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
 import Assembly.Enjoyers.Map.AnimatedBlocks.JumpPad;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.maps.MapObject;
+import com.badlogic.gdx.maps.objects.TextMapObject;
 import com.badlogic.gdx.maps.tiled.*;
 import com.badlogic.gdx.maps.tiled.renderers.OrthogonalTiledMapRenderer;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.scenes.scene2d.ui.Skin;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,6 +31,8 @@ public class TiledGameMap extends GameMap {
     private final List<Rectangle> spikeRects = new ArrayList<>();
     private final List<CrumblingBlock> crumblingBlocks = new ArrayList<>();
     private final List<JumpPad> jumpPads = new ArrayList<>();
+    private BitmapFont font;
+    private SpriteBatch batch;
 
     /**
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
@@ -32,8 +40,11 @@ public class TiledGameMap extends GameMap {
     public TiledGameMap(String mapPath) {
         tiledMap = new TmxMapLoader().load(mapPath);
         tiledMapRender = new OrthogonalTiledMapRenderer(tiledMap);
-
+        batch = (SpriteBatch) tiledMapRender.getBatch();
+        Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        font = skin.getFont("default-font");
         generateCollisionData();
+        font.getData().setScale(2f);
     }
 
     /**
@@ -45,6 +56,14 @@ public class TiledGameMap extends GameMap {
     public void render(OrthographicCamera camera) {
         tiledMapRender.setView(camera);
         tiledMapRender.render();
+
+        batch.begin();
+        for (MapObject object : tiledMap.getLayers().get("Text").getObjects()) {
+            if(object instanceof TextMapObject text) {
+                font.draw(batch, text.getText(), text.getX(), text.getY());
+            }
+        }
+        batch.end();
     }
 
     /**
@@ -70,39 +89,41 @@ public class TiledGameMap extends GameMap {
         int tileSize = TileTyped.TILE_SIZE;
 
         for (int layer = 0; layer < getLayers(); layer++) {
-            TiledMapTileLayer tiledLayer = (TiledMapTileLayer) tiledMap.getLayers().get(layer);
 
-            for (int x = 0; x < tiledLayer.getWidth(); x++) {
-                for (int y = 0; y < tiledLayer.getHeight(); y++) {
-                    TiledMapTileLayer.Cell cell = tiledLayer.getCell(x, y);
-                    if (cell == null || cell.getTile() == null) continue;
+            if(tiledMap.getLayers().get(layer) instanceof TiledMapTileLayer tiledLayer)
+            {
+                for (int x = 0; x < tiledLayer.getWidth(); x++) {
+                    for (int y = 0; y < tiledLayer.getHeight(); y++) {
+                        TiledMapTileLayer.Cell cell = tiledLayer.getCell(x, y);
+                        if (cell == null || cell.getTile() == null) continue;
 
-                    TileTyped tileType = TileTyped.getTileTypeById(cell.getTile().getId());
-                    if (tileType == null) continue;
+                        TileTyped tileType = TileTyped.getTileTypeById(cell.getTile().getId());
+                        if (tileType == null) continue;
 
-                    int tileX = x * tileSize;
-                    int tileY = y * tileSize;
+                        int tileX = x * tileSize;
+                        int tileY = y * tileSize;
 
-                    if (tileType.getEffectType() == TileTyped.TileEffectType.SPIKE) {
-                        if (tileType == BoneSpike) {
-                            int offset = tileSize / 8;
-                            int size = tileSize / 4;
-                            spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
-                        } else if (tileType == SteelSpike) {
-                            int offset = tileSize / 8;
-                            int size = tileSize / 2;
-                            spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
+                        if (tileType.getEffectType() == TileTyped.TileEffectType.SPIKE) {
+                            if (tileType == BoneSpike) {
+                                int offset = tileSize / 8;
+                                int size = tileSize / 4;
+                                spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
+                            } else if (tileType == SteelSpike) {
+                                int offset = tileSize / 8;
+                                int size = tileSize / 2;
+                                spikeRects.add(new Rectangle(tileX + offset, tileY + offset, size, size));
+                            }
+                            else {
+                                spikeRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
+                            }
+                        } else if (tileType.getEffectType() == TileTyped.TileEffectType.CRUMBLING) {
+                            crumblingBlocks.add(new CrumblingBlock(tileX, tileY, tileSize, tileSize));
+                        } else if (tileType.getEffectType() == TileTyped.TileEffectType.JUMP_PAD) {
+                            jumpPads.add(new JumpPad(tileX, tileY, tileSize, tileSize));
                         }
-                        else {
-                            spikeRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
+                        else if (tileType.isCollidable()) {
+                            collisionRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
                         }
-                    } else if (tileType.getEffectType() == TileTyped.TileEffectType.CRUMBLING) {
-                        crumblingBlocks.add(new CrumblingBlock(tileX, tileY, tileSize, tileSize));
-                    } else if (tileType.getEffectType() == TileTyped.TileEffectType.JUMP_PAD) {
-                        jumpPads.add(new JumpPad(tileX, tileY, tileSize, tileSize));
-                    }
-                    else if (tileType.isCollidable()) {
-                        collisionRects.add(new Rectangle(tileX, tileY, tileSize, tileSize));
                     }
                 }
             }
