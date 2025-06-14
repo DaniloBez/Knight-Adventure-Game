@@ -70,7 +70,6 @@ public class Player {
     private float deathTimer = 0f;
     private final float deathDelay;
     private final DeathListener deathListener;
-
     //endregion
 
     /**
@@ -94,7 +93,10 @@ public class Player {
         deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
     }
 
-
+    /**
+     * Застосовує jumppadVelocity до VelocityY.
+     * Виштовхує гравця вгору.
+     */
     public void applyJumpPadBoost() {
         float currentVelocityX = velocityX;
 
@@ -211,6 +213,7 @@ public class Player {
             if (deathTimer <= 0f) {
                 corpse.setPosition(sprite.getX(), sprite.getY() - 10);
                 corpse.setAlpha(1f);
+                corpse.setFlip(!facingRight, false);
                 sprite.setPosition(respawnX, respawnY);
                 updateHitBox();
                 isDead = false;
@@ -380,7 +383,7 @@ public class Player {
      */
     private void handleWallInteraction(List<Rectangle> bounds, float delta) {
         if (touchingWall && !onGround) {
-            if (input.isButtonPressed(Input.Buttons.RIGHT) && stamina > 0) {
+            if (input.isButtonPressed(Input.Buttons.RIGHT)&& stamina > 0) {
                 currentState = PlayerState.WALL_GRABBING;
 
                 if(velocityY <= 150) {
@@ -405,7 +408,11 @@ public class Player {
 
                 stamina -= staminaDrain * delta;
                 if (stamina < 0) stamina = 0;
-            } else if (!input.isKeyPressed(Keys.S) && velocityY < wallSlideSpeed) {
+            }else if (input.isKeyPressed(Keys.S)) {
+                velocityY = 0.75f * gravity;
+                currentState = PlayerState.WALL_SLIDING;
+            }
+            else if (!input.isKeyPressed(Keys.S) && velocityY < wallSlideSpeed) {
                 velocityY = wallSlideSpeed;
                 currentState = PlayerState.WALL_SLIDING;
             }
@@ -472,6 +479,7 @@ public class Player {
             moveX += moveSpeed * delta;
             facingRight = true;
         }
+
         return moveX;
     }
 
@@ -618,12 +626,6 @@ public class Player {
         shapeRenderer.rect(x, y, maxWidth * staminaRatio, height);
 
         shapeRenderer.end();
-    }
-
-    /**
-     * Звільняє ресурси
-     */
-    public void dispose(){
     }
 
     /**

@@ -380,7 +380,6 @@ public class GameScreen implements Screen {
     @Override public void dispose() {
         game = null;
 
-        player.dispose();
         gameMap.dispose();
         pauseStage.dispose();
 

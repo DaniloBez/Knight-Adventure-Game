@@ -14,4 +14,7 @@ dependencies {
   }
 
   implementation 'it.unimi.dsi:fastutil:8.5.6'
+  implementation "com.badlogicgames.gdx:gdx-controllers:1.9.13"
+  implementation "com.badlogicgames.gdx:gdx-controllers-desktop:1.9.13"
+  runtimeOnly "com.badlogicgames.gdx:gdx-controllers-lwjgl3:1.9.13"
 }
