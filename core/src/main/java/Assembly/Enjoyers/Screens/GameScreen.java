@@ -102,10 +102,11 @@ public class GameScreen implements Screen {
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
                 break;
             case "levelId-3":
-                gameMap = new TiledGameMap("maps/level2/map.tmx");
+                gameMap = new TiledGameMap("maps/level3/map.tmx");
                 respawnX = 950;
-                respawnY = 400;
-                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                respawnY = 4850;
+
+                endOfTheLevel = new Rectangle(14900, 4640, 60, 130);
                 break;
 
             default:
