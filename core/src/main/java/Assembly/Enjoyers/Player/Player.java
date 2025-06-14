@@ -207,6 +207,8 @@ public class Player {
     private boolean handleDeath(List<Rectangle> spikes,List<CrumblingBlock> crumblingBlocks,  float delta) {
         if (isDead) {
             currentState = PlayerState.DYING;
+            velocityY = 0;
+            velocityX = 0;
             deathTimer -= delta;
             if (deathTimer <= 0f) {
                 corpse.setPosition(sprite.getX(), sprite.getY() - 10);
