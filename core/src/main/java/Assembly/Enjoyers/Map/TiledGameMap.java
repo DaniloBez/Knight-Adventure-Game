@@ -34,12 +34,14 @@ public class TiledGameMap extends GameMap {
     private final List<JumpPad> jumpPads = new ArrayList<>();
     private BitmapFont font;
     private SpriteBatch batch;
+    private final String levelPath;
 
     /**
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
      */
-    public TiledGameMap() {
-        tiledMap = Assets.getLevel1();
+    public TiledGameMap(String levelPath) {
+        this.levelPath =  levelPath;
+        tiledMap = Assets.getLevel(levelPath);
         tiledMapRender = new OrthogonalTiledMapRenderer(tiledMap);
         batch = (SpriteBatch) tiledMapRender.getBatch();
         Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
@@ -82,8 +84,7 @@ public class TiledGameMap extends GameMap {
      */
     @Override
     public void dispose() {
-        Assets.unloadLevel1();
-        //tiledMap.dispose();
+        Assets.unloadLevel(levelPath);
         collisionRects.clear();
         spikeRects.clear();
         tiledMapRender.dispose();
