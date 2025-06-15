@@ -285,29 +285,12 @@ public class GameScreen implements Screen {
 
         game.batch.end();
 
-
-
-        drawEndOfTheLevel();
-
         if (isPaused) {
             pauseStage.act(delta);
             pauseStage.draw();
         }
     }
 
-    /**
-     *
-     */
-    @Deprecated
-    private void drawEndOfTheLevel(){
-        ShapeRenderer shapeRenderer = new ShapeRenderer();
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(endOfTheLevel.x, endOfTheLevel.y, endOfTheLevel.width, endOfTheLevel.height);
-        shapeRenderer.end();
-        shapeRenderer.dispose();
-    }
 
     private void finishLevel() {
         saveDeath();
@@ -327,7 +310,6 @@ public class GameScreen implements Screen {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
 
-        // Відображення зникаючих блоків
         for (CrumblingBlock block : gameMap.getCrumblingBlocks()) {
 
             if (!block.isDestroyed()) {
