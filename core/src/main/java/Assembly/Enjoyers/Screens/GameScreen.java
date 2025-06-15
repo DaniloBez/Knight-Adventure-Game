@@ -222,7 +222,6 @@ public class GameScreen implements Screen {
         }
 
         if (!isPaused) {
-            // Очистити попередній стан колізій
             activeCollisions.clear();
 
             activeCollisions.addAll(staticBounds);

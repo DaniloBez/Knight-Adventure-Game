@@ -2,7 +2,6 @@ package Assembly.Enjoyers.Player;
 
 import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -91,6 +90,8 @@ public class Player {
         this.deathListener = deathListener;
 
         deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
+
+        InputHandler.update();
     }
 
     /**
@@ -382,16 +383,16 @@ public class Player {
      * @param delta Проміжок часу між поточним та останнім кадром у секундах.
      */
     private void handleWallInteraction(List<Rectangle> bounds, float delta) {
-        if (touchingWall && !onGround) {
-            if (input.isButtonPressed(Input.Buttons.RIGHT)&& stamina > 0) {
+        if (touchingWall) {
+            if (InputHandler.getButtonPressed(InputHandler.KeyBinds.CLIMB) && stamina > 0) {
                 currentState = PlayerState.WALL_GRABBING;
 
                 if(velocityY <= 150) {
-                    if (input.isKeyPressed(Keys.W)) {
+                    if (InputHandler.getButtonPressed(InputHandler.KeyBinds.UP)) {
                         currentState = PlayerState.WALL_CLIMBING;
                         velocityY = 150;
                     }
-                    else if (input.isKeyPressed(Keys.S)) {
+                    else if (InputHandler.getButtonPressed(InputHandler.KeyBinds.DOWN)) {
                         currentState = PlayerState.WALL_CLIMBING;
                         velocityY = -150;
                     }
@@ -400,7 +401,7 @@ public class Player {
 
                 }
 
-                if(input.isKeyPressed(Keys.W) && input.isKeyJustPressed(Keys.SPACE)) {
+                if(InputHandler.getButtonPressed(InputHandler.KeyBinds.UP) && InputHandler.getButtonJustPressed(InputHandler.KeyBinds.JUMP)) {
                     velocityY = jumpForce;
                     stamina -= staminaDrain;
                     currentState = PlayerState.JUMPING;
@@ -408,16 +409,16 @@ public class Player {
 
                 stamina -= staminaDrain * delta;
                 if (stamina < 0) stamina = 0;
-            }else if (input.isKeyPressed(Keys.S)) {
+            }else if (InputHandler.getButtonPressed(InputHandler.KeyBinds.DOWN)) {
                 velocityY = 0.75f * gravity;
                 currentState = PlayerState.WALL_SLIDING;
             }
-            else if (!input.isKeyPressed(Keys.S) && velocityY < wallSlideSpeed) {
+            else if (!InputHandler.getButtonPressed(InputHandler.KeyBinds.DOWN) && velocityY < wallSlideSpeed) {
                 velocityY = wallSlideSpeed;
                 currentState = PlayerState.WALL_SLIDING;
             }
 
-            if(input.isKeyJustPressed(Keys.SPACE) && !input.isKeyPressed(Keys.W) && stamina > 0){
+            if(InputHandler.getButtonJustPressed(InputHandler.KeyBinds.JUMP) && !InputHandler.getButtonPressed(InputHandler.KeyBinds.UP) && stamina > 0){
                 if (checkRightTouching(bounds)) {
                     if (lastWallRight) {
                         velocityX = -wallJumpForceX;
@@ -451,7 +452,7 @@ public class Player {
      * Стрибок з землі.
      */
     private void handleJump() {
-        if (onGround && input.isKeyJustPressed(Keys.SPACE)) {
+        if (onGround && InputHandler.getButtonJustPressed(InputHandler.KeyBinds.JUMP)) {
             velocityY = jumpForce;
             currentState = PlayerState.JUMPING;
         }
@@ -471,11 +472,11 @@ public class Player {
      */
     private float handleHorizontalInput(float delta) {
         float moveX = 0;
-        if (input.isKeyPressed(Keys.A)) {
+        if (InputHandler.getButtonPressed(InputHandler.KeyBinds.LEFT)) {
             moveX -= moveSpeed * delta;
             facingRight = false;
         }
-        if (input.isKeyPressed(Keys.D)) {
+        if (InputHandler.getButtonPressed(InputHandler.KeyBinds.RIGHT)) {
             moveX += moveSpeed * delta;
             facingRight = true;
         }
@@ -508,7 +509,7 @@ public class Player {
             return;
         }
 
-        if ((input.isButtonJustPressed(Input.Buttons.LEFT) || input.isKeyJustPressed(Keys.SHIFT_LEFT))
+        if (InputHandler.getButtonJustPressed(InputHandler.KeyBinds.DASH)
             && dashCount > 0 && !isDashing) {
             float dx = 0, dy = 0;
             if (input.isKeyPressed(Keys.D)) dx = 1;
