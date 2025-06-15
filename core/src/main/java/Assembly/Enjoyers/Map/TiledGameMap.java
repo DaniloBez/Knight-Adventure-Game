@@ -64,7 +64,6 @@ public class TiledGameMap extends GameMap {
     @Override
     public void dispose() {
         Assets.unloadLevel1();
-        //tiledMap.dispose();
         collisionRects.clear();
         spikeRects.clear();
         tiledMapRender.dispose();

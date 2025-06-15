@@ -6,6 +6,11 @@ import com.badlogic.gdx.Preferences;
 
 import static com.badlogic.gdx.Gdx.input;
 
+/**
+ * Обробляє налаштування клавіш та кнопок управління для гравця.
+ * Завантажує згідно збережених налаштувань з {@link Preferences} і надає методи
+ * для перевірки стану кнопок (утримується чи натиснута одинично).
+ */
 public class InputHandler {
     private static int up, down, left, right, jump, dash, climb;
 
@@ -13,6 +18,10 @@ public class InputHandler {
         update();
     }
 
+    /**
+     * Завантажує налаштування управління з Preferences (файл "Settings").
+     * Викликається при ініціалізації і може бути викликаний для оновлення параметрів.
+     */
     public static void update(){
         Preferences preferences = Gdx.app.getPreferences("Settings");
         up = preferences.getInteger("keyUp", Input.Keys.W);
@@ -24,16 +33,31 @@ public class InputHandler {
         climb = preferences.getInteger("keyClimb", Input.Buttons.RIGHT - 1000);
     }
 
-    public enum KeyBinds{
+    /**
+     * Перераховує всі можливі прив'язки клавіш та кнопок.
+     */
+    public enum KeyBinds {
+        /** Рух угору */
         UP,
+        /** Рух вниз */
         DOWN,
+        /** Рух вліво */
         LEFT,
+        /** Рух вправо */
         RIGHT,
+        /** Стрибок */
         JUMP,
+        /** Даш */
         DASH,
+        /** Лазіння по стіні */
         CLIMB
     }
 
+    /**
+     * Перевіряє, чи утримується натиснутою відповідна клавіша або кнопка.
+     * @param key тип прив'язки з KeyBinds
+     * @return true, якщо клавіша/кнопка утримується, інакше false
+     */
     public static boolean getButtonPressed(KeyBinds key){
         int buttonCode = getButtonCode(key);
         if(buttonCode >= 0) return input.isKeyPressed(buttonCode);
@@ -43,6 +67,11 @@ public class InputHandler {
         }
     }
 
+    /**
+     * Перевіряє, чи була натиснута відповідна клавіша або кнопка саме в поточному кадрі.
+     * @param key тип прив'язки з KeyBinds
+     * @return true, якщо клавіша/кнопка була натиснута цього кадру, інакше false
+     */
     public static boolean getButtonJustPressed(KeyBinds key){
         int buttonCode = getButtonCode(key);
         if(buttonCode >= 0) return input.isKeyJustPressed(buttonCode);
@@ -52,6 +81,11 @@ public class InputHandler {
         }
     }
 
+    /**
+     * Повертає збережений код клавіші або кнопки (може бути від'ємним для миші).
+     * @param key тип прив'язки з KeyBinds
+     * @return код клавіші (>0) або (код кнопки - 1000) (<0)
+     */
     private static int getButtonCode(KeyBinds key){
         return switch (key){
             case UP -> up;

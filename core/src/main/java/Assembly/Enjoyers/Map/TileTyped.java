@@ -11,7 +11,6 @@ import java.util.HashMap;
  */
 public enum TileTyped {
 
-    //for night_level
     SteelSpike(268, true, "SteelSpike", TileEffectType.SPIKE),
     BrickWall(248, true, "BrickWall", TileEffectType.NONE),
     RightCastleWall(247, true, "BrickWall", TileEffectType.NONE),

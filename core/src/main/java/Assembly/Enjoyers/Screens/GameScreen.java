@@ -291,19 +291,8 @@ public class GameScreen implements Screen {
     }
 
     /**
-     *
+     * При успішному закінченню рівня, гравцеві показується вікно зі статистикою.
      */
-    @Deprecated
-    private void drawEndOfTheLevel(){
-        ShapeRenderer shapeRenderer = new ShapeRenderer();
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(endOfTheLevel.x, endOfTheLevel.y, endOfTheLevel.width, endOfTheLevel.height);
-        shapeRenderer.end();
-        shapeRenderer.dispose();
-    }
-
     private void finishLevel() {
         saveDeath();
         saveTime();
@@ -320,7 +309,6 @@ public class GameScreen implements Screen {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
 
-        // Відображення зникаючих блоків
         for (CrumblingBlock block : gameMap.getCrumblingBlocks()) {
 
             if (!block.isDestroyed()) {

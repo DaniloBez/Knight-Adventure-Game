@@ -66,7 +66,6 @@ public class SettingsScreen implements Screen {
         Slider musicSlider = new Slider(0f, 1f, 0.01f, false, skin);
         Slider soundSlider = new Slider(0f, 1f, 0.01f, false, skin);
 
-        // Завантаження початкових значень
         initialMusic = prefs.getFloat("musicVolume", 0.5f);
         initialSound = prefs.getFloat("soundVolume", 0.5f);
         musicSlider.setValue(initialMusic);
@@ -74,7 +73,6 @@ public class SettingsScreen implements Screen {
         musicValueLabel.setText(Math.round(initialMusic * 100) + "%");
         soundValueLabel.setText(Math.round(initialSound * 100) + "%");
 
-        // Обробка зміни значень
         musicSlider.addListener(event -> {
             musicValueLabel.setText(Math.round(musicSlider.getValue() * 100) + "%");
             return false;
