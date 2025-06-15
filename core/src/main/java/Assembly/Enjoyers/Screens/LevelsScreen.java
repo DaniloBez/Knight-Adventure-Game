@@ -1,17 +1,23 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
+import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Utils.TimeConverter;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
+import com.badlogic.gdx.graphics.g2d.freetype.FreeType;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
 import com.badlogic.gdx.scenes.scene2d.Stage;
 import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
 import com.badlogic.gdx.utils.viewport.ScreenViewport;
+
+import java.awt.*;
 
 /**
  * Екран вибору рівнів у грі.
@@ -39,7 +45,7 @@ public class LevelsScreen implements Screen {
         this.game = game;
         background = new Texture("temp/background.png");
         pref = Gdx.app.getPreferences("levels");
-        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin = Assets.get("skin/uiskin.json", Skin.class);
 
         deathLabels = new Label[levelCount];
         timeLabels = new Label[levelCount];
@@ -60,6 +66,9 @@ public class LevelsScreen implements Screen {
     private void createUI() {
         stage = new Stage(new ScreenViewport());
         Gdx.input.setInputProcessor(stage);
+
+        BitmapFont font = skin.getFont("default-font");
+        font.getData().setScale(2f);
 
         Table table = new Table();
         table.setFillParent(true);
@@ -201,7 +210,6 @@ public class LevelsScreen implements Screen {
     @Override
     public void dispose() {
         background.dispose();
-        skin.dispose();
         stage.dispose();
 
         game = null;

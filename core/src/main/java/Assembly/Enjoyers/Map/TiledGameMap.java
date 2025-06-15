@@ -1,5 +1,6 @@
 package Assembly.Enjoyers.Map;
 
+import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
 import Assembly.Enjoyers.Map.AnimatedBlocks.JumpPad;
 import com.badlogic.gdx.Gdx;
@@ -37,8 +38,8 @@ public class TiledGameMap extends GameMap {
     /**
      * Завантажує Tiled-карту з TMX-файлу та ініціалізує рендерер.
      */
-    public TiledGameMap(String mapPath) {
-        tiledMap = new TmxMapLoader().load(mapPath);
+    public TiledGameMap() {
+        tiledMap = Assets.getLevel1();
         tiledMapRender = new OrthogonalTiledMapRenderer(tiledMap);
         batch = (SpriteBatch) tiledMapRender.getBatch();
         Skin skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
@@ -81,7 +82,11 @@ public class TiledGameMap extends GameMap {
      */
     @Override
     public void dispose() {
-        tiledMap.dispose();
+        Assets.unloadLevel1();
+        //tiledMap.dispose();
+        collisionRects.clear();
+        spikeRects.clear();
+        tiledMapRender.dispose();
     }
 
     /**

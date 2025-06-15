@@ -1,6 +1,7 @@
 package Assembly.Enjoyers.Screens;
 
 import Assembly.Enjoyers.MainGame;
+import Assembly.Enjoyers.Utils.Assets;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Preferences;
 import com.badlogic.gdx.Screen;
@@ -42,7 +43,7 @@ public class SettingsScreen implements Screen {
 
         background = new Texture("temp/background.jpg");
 
-        skin = new Skin(Gdx.files.internal("skin/uiskin.json"));
+        skin = Assets.get("skin/uiskin.json", Skin.class);
         prefs = Gdx.app.getPreferences("settings");
 
         createUI();
@@ -217,7 +218,6 @@ public class SettingsScreen implements Screen {
     /// Очищує ресурси сцени та скіна.
     @Override
     public void dispose() {
-        skin.dispose();
         stage.dispose();
         game = null;
     }

@@ -1,14 +1,15 @@
 package Assembly.Enjoyers.Player;
 
+import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
-import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.graphics.g2d.TextureAtlas;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Rectangle;
@@ -20,7 +21,6 @@ import static com.badlogic.gdx.Gdx.input;
 public class Player {
     //region variables
     // --- Sprite ---
-    private final Texture texture;
     public Sprite sprite;
     private final Rectangle hitBox;
     private final Sprite corpse;
@@ -67,7 +67,6 @@ public class Player {
     private final float respawnX;
     private final float respawnY;
 
-
     // --- Death ---
     private boolean isDead = false;
     private float deathTimer = 0f;
@@ -80,15 +79,16 @@ public class Player {
      * Конструктор персонажа, ініціалізує текстуру, спрайт та хитбокс.
      */
     public Player(DeathListener deathListener, float respawnX, float respawnY) {
-        texture = new Texture("player\\adventurer-die-06.png");
-        sprite = new Sprite(texture);
-        sprite.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
+        TextureAtlas atlas = Assets.get("player/adventurer.atlas", TextureAtlas.class);
+        TextureRegion region = atlas.findRegion("adventurer-die-06");
+        sprite = new Sprite(region);
+        sprite.setSize(region.getRegionWidth() * 3, region.getRegionHeight() * 3);
         this.respawnX = respawnX;
         this.respawnY = respawnY;
         sprite.setPosition(respawnX, respawnY);
         hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-        corpse = new Sprite(texture);
-        corpse.setSize(texture.getWidth() * 3, texture.getHeight() * 3);
+        corpse = new Sprite(region);
+        corpse.setSize(region.getRegionWidth() * 3, region.getRegionHeight() * 3);
         corpse.setAlpha(0);
 
         this.deathListener = deathListener;
@@ -115,7 +115,7 @@ public class Player {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(hitBox.x, hitBox.y, hitBox.width, hitBox.height);
-//        shapeRenderer.rect(corpse.getX() + hitBoxXOffset, corpse.getY(), corpse.getWidth() - 1.7f * hitBoxXOffset, corpse.getHeight() - 2.2f * hitBoxYOffset);
+        shapeRenderer.rect(corpse.getX() + hitBoxXOffset, corpse.getY(), corpse.getWidth() - 1.7f * hitBoxXOffset, corpse.getHeight() - 2.2f * hitBoxYOffset);
         shapeRenderer.end();
     }
 
@@ -603,7 +603,7 @@ public class Player {
      * @param camera камера для HUD
      */
     public void drawStaminaBar(SpriteBatch batch, OrthographicCamera camera) {
-        // Обчислюємо індекс картинки: 0 — повна, 4 — пуста
+
         int index = (int) ((100f - stamina) / 25f);
         index = Math.min(Math.max(index, 0), 4); // захист від виходу за межі
 
@@ -645,13 +645,9 @@ public class Player {
      * Звільняє ресурси
      */
     public void dispose(){
-        soundManager.dispose();
-        texture.dispose();
-        animationManager.dispose();
         for (Texture texture : staminaStages) {
             texture.dispose();
         }
-
     }
 
     /**
