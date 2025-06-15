@@ -222,7 +222,6 @@ public class GameScreen implements Screen {
         }
 
         if (!isPaused) {
-            // Очистити попередній стан колізій
             activeCollisions.clear();
 
             activeCollisions.addAll(staticBounds);
@@ -294,6 +293,9 @@ public class GameScreen implements Screen {
     }
 
 
+    /**
+     * При успішному закінченню рівня, гравцеві показується вікно зі статистикою.
+     */
     private void finishLevel() {
         saveDeath();
         saveTime();

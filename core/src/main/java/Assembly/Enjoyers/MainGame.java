@@ -56,6 +56,11 @@ public class MainGame extends Game {
         setScreen(mainMenuScreen);
     }
 
+    /**
+     * Викликається коли гравець успішно закінчив рівень.
+     * Використовується для оптимізації пам'яті.
+     * @param screen Вікно кінця рівня, зі статистикою
+     */
     public void gameOver(FinishScreen screen) {
         Screen s = this.getScreen();
         if (s != null) s.dispose();

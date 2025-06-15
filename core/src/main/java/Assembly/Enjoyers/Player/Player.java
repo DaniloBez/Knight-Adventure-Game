@@ -3,7 +3,6 @@ package Assembly.Enjoyers.Player;
 import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -20,61 +19,43 @@ import java.util.List;
 import static com.badlogic.gdx.Gdx.input;
 
 public class Player {
-    //region variables
-    // --- Sprite ---
-    public Sprite sprite;
+    private static final float GRAVITY = -1200f;
+    private static final float MOVE_SPEED = 600f;
+    private static final float JUMP_FORCE = 600f;
+    private static final float WALL_SLIDE_SPEED = -200f;
+    private static final float WALL_CLIMB_SPEED = 150f;
+    private static final float WALL_JUMP_FORCE_X = 1200f;
+    private static final int MAX_DASH_COUNT = 1;
+    private static final float DASH_FORCE = 1000f;
+    private static final float DASH_DECAY_RAW = 0.98f;
+    private static final float DASH_MIN_FORCE = 400f;
+    private static final float MAX_STAMINA = 100f;
+    private static final float STAMINA_DRAIN = 20f;
+    private static final float HITBOX_X_OFFSET = 55f;
+    private static final float HITBOX_Y_OFFSET = 22f;
+
+    public final Sprite sprite;
     private final Rectangle hitBox;
     private final Sprite corpse;
-    private final float hitBoxXOffset = 55f;
-    private final float hitBoxYOffset = 22f;
-    private PlayerState currentState = PlayerState.IDLE;
-    private final PlayerAnimationManager animationManager = new PlayerAnimationManager();
-    private final PlayerSoundManager soundManager = new PlayerSoundManager();
-
-    // --- Basic movement ---
-    private float velocityY = 0;
-    private float velocityX = 0;
-    private final float gravity = -1200f;
-    private final float moveSpeed = 600f;
-    private final float jumpForce = 600f;
-    public boolean facingRight = false;
-
-    // --- Walls ---
-    private boolean onGround = false;
-    private boolean prevOnGround = false;
-    private boolean touchingWall = false;
-    private boolean lastWallRight = false;
-    private final float wallSlideSpeed = -200f;
-    private final float wallJumpForceX = 1200f;
-
-    // --- Dash ---
-    private boolean isDashing = false;
-    private float dashXVelocity = 0;
-    private float dashYVelocity = 0;
-    private final float dashForce = 1000f;
-    private final float dashDecayRaw = 0.98f;
-    private final float dashMinForce = 400f;
-    private int dashCount = 1;
-
-    // --- Stamina ---
-    private float stamina = 100f;
-    private final float staminaDrain = 20f;
-    private Texture[] staminaStages;
-
-    // --- UI ---
-    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
-
-    // --- Respawn ---
     private final float respawnX;
     private final float respawnY;
-
-    // --- Death ---
-    private boolean isDead = false;
-    private float deathTimer = 0f;
-    private final float deathDelay;
     private final DeathListener deathListener;
+    private final PlayerAnimationManager animationManager = new PlayerAnimationManager();
+    private final PlayerSoundManager soundManager = new PlayerSoundManager();
+    private final ShapeRenderer shapeRenderer = new ShapeRenderer();
 
-    //endregion
+    private PlayerState currentState = PlayerState.IDLE;
+    private boolean facingRight = true;
+    private boolean onGround, prevOnGround, touchingWall, lastWallRight;
+    private boolean isDashing, isDead;
+
+    private float velocityX, velocityY;
+    private float dashXVelocity, dashYVelocity;
+    private int dashCount = MAX_DASH_COUNT;
+    private float stamina = MAX_STAMINA;
+    private float deathTimer;
+    private final float deathDelay;
+    private Texture[] staminaStages;
 
     /**
      * Конструктор персонажа, ініціалізує текстуру, спрайт та хитбокс.
@@ -82,22 +63,27 @@ public class Player {
     public Player(DeathListener deathListener, float respawnX, float respawnY) {
         TextureAtlas atlas = Assets.get("player/adventurer.atlas", TextureAtlas.class);
         TextureRegion region = atlas.findRegion("adventurer-die-06");
-        sprite = new Sprite(region);
-        sprite.setSize(region.getRegionWidth() * 3, region.getRegionHeight() * 3);
+
+        this.sprite = new Sprite(region);
+        this.sprite.setSize(region.getRegionWidth() * 3, region.getRegionHeight() * 3);
         this.respawnX = respawnX;
         this.respawnY = respawnY;
-        sprite.setPosition(respawnX, respawnY);
-        hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
-        corpse = new Sprite(region);
-        corpse.setSize(region.getRegionWidth() * 3, region.getRegionHeight() * 3);
-        corpse.setAlpha(0);
+        this.sprite.setPosition(respawnX, respawnY);
+
+        this.hitBox = new Rectangle(sprite.getX(), sprite.getY(), sprite.getWidth(), sprite.getHeight());
+        this.corpse = new Sprite(region);
+        this.corpse.setSize(region.getRegionWidth() * 3, region.getRegionHeight() * 3);
+        this.corpse.setAlpha(0);
 
         this.deathListener = deathListener;
-
-        deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
+        this.deathDelay = animationManager.getAnimationDuration(PlayerState.DYING);
+        InputHandler.update();
     }
 
-
+    /**
+     * Застосовує jumppadVelocity до VelocityY.
+     * Виштовхує гравця вгору.
+     */
     public void applyJumpPadBoost() {
         float currentVelocityX = velocityX;
 
@@ -116,7 +102,7 @@ public class Player {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
         shapeRenderer.setColor(Color.RED);
         shapeRenderer.rect(hitBox.x, hitBox.y, hitBox.width, hitBox.height);
-        shapeRenderer.rect(corpse.getX() + hitBoxXOffset, corpse.getY(), corpse.getWidth() - 1.7f * hitBoxXOffset, corpse.getHeight() - 2.2f * hitBoxYOffset);
+        shapeRenderer.rect(corpse.getX() + HITBOX_X_OFFSET, corpse.getY(), corpse.getWidth() - 1.7f * HITBOX_X_OFFSET, corpse.getHeight() - 2.2f * HITBOX_Y_OFFSET);
         shapeRenderer.end();
     }
 
@@ -140,10 +126,7 @@ public class Player {
 
         float moveX = handleHorizontalInput(delta);
         dash(delta);
-        if (!isDashing || (dashXVelocity == 0 && dashYVelocity < 0))
-            applyGravity(delta);
-        else
-            velocityY = 0;
+        applyGravityIfNeeded(delta);
 
         updateHitBox();
         onGround = checkFeetTouching(bounds);
@@ -187,7 +170,7 @@ public class Player {
     public void drawCorpse(SpriteBatch batch, List<Rectangle> bounds, float delta) {
         corpse.draw(batch);
 
-        Rectangle hitbox = new Rectangle(corpse.getX() + hitBoxXOffset, corpse.getY(), corpse.getWidth() - 1.7f * hitBoxXOffset, corpse.getHeight() - 2.2f * hitBoxYOffset);
+        Rectangle hitbox = new Rectangle(corpse.getX() + HITBOX_X_OFFSET, corpse.getY(), corpse.getWidth() - 1.7f * HITBOX_X_OFFSET, corpse.getHeight() - 2.2f * HITBOX_Y_OFFSET);
         boolean isOnGround = false;
         for (Rectangle bound : bounds) {
             if(hitbox.overlaps(bound)) {
@@ -197,7 +180,7 @@ public class Player {
         }
 
         if (!isOnGround) {
-            corpse.translateY(-moveSpeed * delta);
+            corpse.translateY(-MOVE_SPEED * delta);
         }
     }
 
@@ -216,6 +199,7 @@ public class Player {
             if (deathTimer <= 0f) {
                 corpse.setPosition(sprite.getX(), sprite.getY() - 10);
                 corpse.setAlpha(1f);
+                corpse.setFlip(!facingRight, false);
                 sprite.setPosition(respawnX, respawnY);
                 updateHitBox();
                 isDead = false;
@@ -332,9 +316,9 @@ public class Player {
         for (Rectangle bound : bounds) {
             if (hitBox.overlaps(bound)) {
                 if (moveX > 0)
-                    sprite.setX(bound.x - hitBox.width - hitBoxXOffset);
+                    sprite.setX(bound.x - hitBox.width - HITBOX_X_OFFSET);
                 else if (moveX < 0)
-                    sprite.setX(bound.x + bound.width - hitBoxXOffset);
+                    sprite.setX(bound.x + bound.width - HITBOX_X_OFFSET);
 
                 dashXVelocity = 0;
                 updateHitBox();
@@ -365,9 +349,9 @@ public class Player {
         for (Rectangle bound : bounds) {
             if (hitBox.overlaps(bound)) {
                 if (velocityY > 0) {
-                    sprite.setY(bound.y - hitBox.height - hitBoxYOffset);
+                    sprite.setY(bound.y - hitBox.height - HITBOX_Y_OFFSET);
                 } else if (velocityY < 0) {
-                    sprite.setY(bound.y + bound.height - hitBoxYOffset);
+                    sprite.setY(bound.y + bound.height - HITBOX_Y_OFFSET);
                     onGround = true;
                 }
                 velocityY = 0;
@@ -384,59 +368,63 @@ public class Player {
      * @param delta Проміжок часу між поточним та останнім кадром у секундах.
      */
     private void handleWallInteraction(List<Rectangle> bounds, float delta) {
-        if (touchingWall && !onGround) {
-            if (input.isButtonPressed(Input.Buttons.RIGHT) && stamina > 0) {
+        if (touchingWall) {
+            if (InputHandler.getButtonPressed(InputHandler.KeyBinds.CLIMB) && stamina > 0) {
                 currentState = PlayerState.WALL_GRABBING;
 
-                if(velocityY <= 150) {
-                    if (input.isKeyPressed(Keys.W)) {
+                if(velocityY <= WALL_CLIMB_SPEED) {
+                    if (InputHandler.getButtonPressed(InputHandler.KeyBinds.UP)) {
                         currentState = PlayerState.WALL_CLIMBING;
-                        velocityY = 150;
+                        velocityY = WALL_CLIMB_SPEED;
                     }
-                    else if (input.isKeyPressed(Keys.S)) {
+                    else if (InputHandler.getButtonPressed(InputHandler.KeyBinds.DOWN)) {
                         currentState = PlayerState.WALL_CLIMBING;
-                        velocityY = -150;
+                        velocityY = -WALL_CLIMB_SPEED;
                     }
                     else if (velocityY < 0)
                         velocityY = 0;
 
                 }
 
-                if(input.isKeyPressed(Keys.W) && input.isKeyJustPressed(Keys.SPACE)) {
-                    velocityY = jumpForce;
-                    stamina -= staminaDrain;
+                if(InputHandler.getButtonPressed(InputHandler.KeyBinds.UP) && InputHandler.getButtonJustPressed(InputHandler.KeyBinds.JUMP)) {
+                    velocityY = JUMP_FORCE;
+                    stamina -= STAMINA_DRAIN;
                     currentState = PlayerState.JUMPING;
                 }
 
-                stamina -= staminaDrain * delta;
+                stamina -= STAMINA_DRAIN * delta;
                 if (stamina < 0) stamina = 0;
-            } else if (!input.isKeyPressed(Keys.S) && velocityY < wallSlideSpeed) {
-                velocityY = wallSlideSpeed;
+            }else if (InputHandler.getButtonPressed(InputHandler.KeyBinds.DOWN)) {
+                velocityY = 0.75f * GRAVITY;
+                currentState = PlayerState.WALL_SLIDING;
+            }
+            else if (!InputHandler.getButtonPressed(InputHandler.KeyBinds.DOWN) && velocityY < WALL_SLIDE_SPEED) {
+                velocityY = WALL_SLIDE_SPEED;
                 currentState = PlayerState.WALL_SLIDING;
             }
 
-            if(input.isKeyJustPressed(Keys.SPACE) && !input.isKeyPressed(Keys.W) && stamina > 0){
+            if(InputHandler.getButtonJustPressed(InputHandler.KeyBinds.JUMP) && !InputHandler.getButtonPressed(InputHandler.KeyBinds.UP) && stamina > 0){
                 if (checkRightTouching(bounds)) {
                     if (lastWallRight) {
-                        velocityX = -wallJumpForceX;
-                        velocityY = jumpForce;
-                        stamina -= staminaDrain;
+                        velocityX = -WALL_JUMP_FORCE_X;
+                        velocityY = JUMP_FORCE;
+                        stamina -= STAMINA_DRAIN;
                     }
                     else {
-                        velocityX = -wallJumpForceX;
-                        velocityY = jumpForce;
+                        velocityX = -WALL_JUMP_FORCE_X;
+                        velocityY = JUMP_FORCE;
                     }
                     lastWallRight = true;
                     currentState = PlayerState.JUMPING;
                 }
                 else if (checkLeftTouching(bounds)) {
                     if (!lastWallRight && stamina > 0) {
-                        velocityX = wallJumpForceX;
-                        velocityY = jumpForce;
-                        stamina -= staminaDrain;
+                        velocityX = WALL_JUMP_FORCE_X;
+                        velocityY = JUMP_FORCE;
+                        stamina -= STAMINA_DRAIN;
                     } else if (lastWallRight) {
-                        velocityX = wallJumpForceX;
-                        velocityY = jumpForce;
+                        velocityX = WALL_JUMP_FORCE_X;
+                        velocityY = JUMP_FORCE;
                     }
                     lastWallRight = false;
                     currentState = PlayerState.JUMPING;
@@ -449,8 +437,8 @@ public class Player {
      * Стрибок з землі.
      */
     private void handleJump() {
-        if (onGround && input.isKeyJustPressed(Keys.SPACE)) {
-            velocityY = jumpForce;
+        if (onGround && InputHandler.getButtonJustPressed(InputHandler.KeyBinds.JUMP)) {
+            velocityY = JUMP_FORCE;
             currentState = PlayerState.JUMPING;
         }
     }
@@ -459,8 +447,8 @@ public class Player {
      * Скидає лічильники деша та стаміни, коли персонаж на землі.
      */
     private void resetDashAndStamina() {
-        dashCount = 1;
-        stamina = 100f;
+        dashCount = MAX_DASH_COUNT;
+        stamina = MAX_STAMINA;
     }
     /**
      * Обробляє вхідні команди AD для руху вліво/вправо.
@@ -469,14 +457,15 @@ public class Player {
      */
     private float handleHorizontalInput(float delta) {
         float moveX = 0;
-        if (input.isKeyPressed(Keys.A)) {
-            moveX -= moveSpeed * delta;
+        if (InputHandler.getButtonPressed(InputHandler.KeyBinds.LEFT)) {
+            moveX -= MOVE_SPEED * delta;
             facingRight = false;
         }
-        if (input.isKeyPressed(Keys.D)) {
-            moveX += moveSpeed * delta;
+        if (InputHandler.getButtonPressed(InputHandler.KeyBinds.RIGHT)) {
+            moveX += MOVE_SPEED * delta;
             facingRight = true;
         }
+
         return moveX;
     }
 
@@ -484,20 +473,24 @@ public class Player {
      * Застосовує гравітацію до вертикальної швидкості.
      * @param delta Проміжок часу між поточним та останнім кадром у секундах.
      */
-    private void applyGravity(float delta) {
-        velocityY += gravity * delta;
+    private void applyGravityIfNeeded(float delta) {
+        if (!isDashing || (dashXVelocity == 0 && dashYVelocity < 0)) {
+            velocityY += GRAVITY * delta;
+        } else {
+            velocityY = 0;
+        }
     }
 
     /**
-     * Обробляє деш у різні сторони (LMB), з лімітом на кількість.
+     * Обробляє деш у різні сторони, з лімітом на кількість.
      */
     private void dash(float delta) {
         if (isDashing) {
-            float dashDecay = (float) (Math.pow(dashDecayRaw, delta * 60));
+            float dashDecay = (float) (Math.pow(DASH_DECAY_RAW, delta * 60));
             dashXVelocity *= dashDecay;
             dashYVelocity *= dashDecay;
 
-            if (Math.abs(dashXVelocity) < dashMinForce && Math.abs(dashYVelocity) < dashMinForce) {
+            if (Math.abs(dashXVelocity) < DASH_MIN_FORCE && Math.abs(dashYVelocity) < DASH_MIN_FORCE) {
                 dashXVelocity = 0;
                 dashYVelocity = 0;
                 isDashing = false;
@@ -505,7 +498,7 @@ public class Player {
             return;
         }
 
-        if ((input.isButtonJustPressed(Input.Buttons.LEFT) || input.isKeyJustPressed(Keys.SHIFT_LEFT))
+        if (InputHandler.getButtonJustPressed(InputHandler.KeyBinds.DASH)
             && dashCount > 0 && !isDashing) {
             float dx = 0, dy = 0;
             if (input.isKeyPressed(Keys.D)) dx = 1;
@@ -522,8 +515,8 @@ public class Player {
                 dy /= len;
             }
 
-            dashXVelocity = dx * dashForce;
-            dashYVelocity = (dy * 3 / 4)  * dashForce;
+            dashXVelocity = dx * DASH_FORCE;
+            dashYVelocity = (dy * 3 / 4)  * DASH_FORCE;
             if(dashYVelocity == 0)
                 dashXVelocity *= (float) 3 /4;
             isDashing = true;
@@ -537,7 +530,7 @@ public class Player {
      * Оновлює координати прямокутника hitBox за позицією спрайта.
      */
     private void updateHitBox() {
-        hitBox.set(sprite.getX() + hitBoxXOffset, sprite.getY(), sprite.getWidth() - 2 * hitBoxXOffset, sprite.getHeight() - hitBoxYOffset);
+        hitBox.set(sprite.getX() + HITBOX_X_OFFSET, sprite.getY(), sprite.getWidth() - 2 * HITBOX_X_OFFSET, sprite.getHeight() - HITBOX_Y_OFFSET);
     }
 
     /**
@@ -547,11 +540,7 @@ public class Player {
      */
     private boolean checkFeetTouching(List<Rectangle> bounds) {
         Rectangle feet = new Rectangle(hitBox.x + hitBox.width / 8, hitBox.y - 1, hitBox.width / 4 * 3, 2);
-        for (Rectangle bound : bounds)
-            if (feet.overlaps(bound))
-                return true;
-
-        return false;
+        return bounds.stream().anyMatch(feet::overlaps);
     }
 
     /**
@@ -560,12 +549,8 @@ public class Player {
      * @return чи персонаж дотикаєтеся справа
      */
     private boolean checkRightTouching(List<Rectangle> bounds) {
-        Rectangle right = new Rectangle( hitBox.x + hitBox.width - 2, hitBox.y - hitBox.height / 8, 4, hitBox.height / 4 * 3);
-        for (Rectangle bound : bounds)
-            if (right.overlaps(bound))
-                return true;
-
-        return false;
+        Rectangle side = new Rectangle(hitBox.x + hitBox.width, hitBox.y, 2, hitBox.height);
+        return bounds.stream().anyMatch(side::overlaps);
     }
 
     /**
@@ -574,12 +559,8 @@ public class Player {
      * @return чи персонаж дотикаєтеся зліва
      */
     private boolean checkLeftTouching(List<Rectangle> bounds) {
-        Rectangle left = new Rectangle( hitBox.x - 2, hitBox.y - hitBox.height / 8, 4, hitBox.height / 4 * 3);
-        for (Rectangle bound : bounds)
-            if (left.overlaps(bound))
-                return true;
-
-        return false;
+        Rectangle side = new Rectangle(hitBox.x - 2, hitBox.y, 2, hitBox.height);
+        return bounds.stream().anyMatch(side::overlaps);
     }
 
     /**
@@ -588,15 +569,9 @@ public class Player {
      * @return чи персонаж дотикаєтеся справа або зліва
      */
     private boolean checkWallTouching(List<Rectangle> bounds) {
-        Rectangle testX1 = new Rectangle(hitBox);
-        Rectangle testX2 = new Rectangle(hitBox);
-        testX1.x += 2;
-        testX2.x -= 2;
-        for (Rectangle bound : bounds)
-            if (testX1.overlaps(bound) || testX2.overlaps(bound))
-                return true;
-
-        return false;
+        Rectangle right = new Rectangle(hitBox.x + hitBox.width + 1, hitBox.y, 2, hitBox.height);
+        Rectangle left = new Rectangle(hitBox.x - 2, hitBox.y, 2, hitBox.height);
+        return bounds.stream().anyMatch(b -> right.overlaps(b) || left.overlaps(b));
     }
 
     /**
@@ -640,7 +615,6 @@ public class Player {
         int index = Math.min((int)((100f - stamina) / 20f), 5); // 0 до 5
         return staminaStages[index];
     }
-
 
     /**
      * Звільняє ресурси
