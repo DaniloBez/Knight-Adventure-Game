@@ -38,21 +38,23 @@ public class Assets {
     }
 
     /**
-     * Завантажує та повертає TiledMap для першого рівня.
+     * Завантажує та повертає TiledMap для рівнів.
      * Завантаження блокує подальший код до повного завантаження.
-     * @return завантажена карта рівня Night
+     * @param levelPath Шлях до карти.
+     * @return завантажена карта рівня.
      */
-    public static TiledMap getLevel1() {
-        manager.load("maps/night_level/map.tmx", TiledMap.class);
+    public static TiledMap getLevel(String levelPath){
+        manager.load(levelPath, TiledMap.class);
         manager.finishLoading();
-        return manager.get("maps/night_level/map.tmx", TiledMap.class);
+        return manager.get(levelPath, TiledMap.class);
     }
 
     /**
-     * Вивантажує ресурси, пов'язані з першим рівнем, щоб звільнити пам'ять.
+     * Вивантажує ресурси, пов'язані з рівнем, щоб звільнити пам'ять.
+     * @param levelPath Шлях до рівня.
      */
-    public static void unloadLevel1() {
-        manager.unload("maps/night_level/map.tmx");
+    public static void unloadLevel(String levelPath){
+        manager.unload( levelPath);
     }
 
     /**
