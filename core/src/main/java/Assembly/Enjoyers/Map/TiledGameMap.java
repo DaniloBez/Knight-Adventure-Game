@@ -84,7 +84,10 @@ public class TiledGameMap extends GameMap {
         tiledMap.dispose();
     }
 
-
+    /**
+     * Генерує дані колізій, шипів, crumble-блоків та трамплінів із тайлів мапи.
+     * Аналізує кожну клітинку кожного шару на основі типу тайлу.
+     */
     private void generateCollisionData() {
         int tileSize = TileTyped.TILE_SIZE;
 
@@ -150,12 +153,17 @@ public class TiledGameMap extends GameMap {
         return spikeRects;
     }
 
+    /**
+     * @return список crumble-блоків, які руйнуються після контакту
+     */
     @Override
     public List<CrumblingBlock> getCrumblingBlocks() {
         return crumblingBlocks;
     }
 
-    // Додаємо гетер для JumpPad
+    /**
+     * @return список трамплінів, які підкидають гравця вгору
+     */
     @Override
     public List<JumpPad> getJumpPads() {
         return jumpPads;
