@@ -11,25 +11,24 @@ import java.util.HashMap;
  */
 public enum TileTyped {
 
-    //for night_level
     SteelSpike(268, true, "SteelSpike", TileEffectType.SPIKE),
     BrickWall(248, true, "BrickWall", TileEffectType.NONE),
     RightCastleWall(247, true, "BrickWall", TileEffectType.NONE),
     GrassBlock(327, true, "GrassBlock", TileEffectType.NONE),
     CastleFloor(2438, true, "CastleFloor",  TileEffectType.NONE),
-    ToxicBlock(2448, true, "ToxicBlock",  TileEffectType.SPIKE),
-    ToxicWoodBlock(2449, true, "ToxicWoodBlock",  TileEffectType.SPIKE),
     CastleSmoothBlock(2441, true, "CastleSmoothBlock",  TileEffectType.NONE),
     RightGrassBlock(328, true, "RightGrassBlock", TileEffectType.NONE),
     LeftGrassBlock(326, true, "LeftGrassBlock", TileEffectType.NONE),
     LeftDirtWall(337, true, "LeftDirtWall", TileEffectType.NONE),
     RightDirtWall(339, true, "RightDirtWall", TileEffectType.NONE),
     BoneSpike(614, true, "BoneSpike",  TileEffectType.SPIKE),
+    BloodLeftSpike(616, true, "BloodLeftSpike",  TileEffectType.SPIKE),
+    BloodRightSpike(617, true, "BloodRightSpike",  TileEffectType.SPIKE),
     LeftWoodPlatform(272, true, "LeftWoodPlatform",  TileEffectType.NONE),
     FlatWoodPlatform(273, true, "FlatWoodPlatform",  TileEffectType.NONE),
     RightWoodPlatform(274, true, "RightWoodPlatform",  TileEffectType.NONE),
     CastlePlatform(238, true, "CastlePlatform",  TileEffectType.NONE),
-    RightCastleCorner(239, true, "StoneBlock", TileEffectType.NONE),
+    RightCastleCorner(239, true, "RightCastleCorner", TileEffectType.NONE),
     CastleBrick(246, true, "StoneBlock", TileEffectType.NONE),
     StoneBlock(249, true, "StoneBlock", TileEffectType.NONE),
     CrumblingBlock(2434, true, "CrumblingBlock",  TileEffectType.CRUMBLING),

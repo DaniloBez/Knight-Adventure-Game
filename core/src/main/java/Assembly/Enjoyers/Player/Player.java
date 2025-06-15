@@ -2,10 +2,12 @@ package Assembly.Enjoyers.Player;
 
 import Assembly.Enjoyers.Utils.Assets;
 import Assembly.Enjoyers.Map.AnimatedBlocks.CrumblingBlock;
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureAtlas;
@@ -57,6 +59,7 @@ public class Player {
     // --- Stamina ---
     private float stamina = 100f;
     private final float staminaDrain = 20f;
+    private Texture[] staminaStages;
 
     // --- UI ---
     private final ShapeRenderer shapeRenderer = new ShapeRenderer();
@@ -207,6 +210,8 @@ public class Player {
     private boolean handleDeath(List<Rectangle> spikes,List<CrumblingBlock> crumblingBlocks,  float delta) {
         if (isDead) {
             currentState = PlayerState.DYING;
+            velocityY = 0;
+            velocityX = 0;
             deathTimer -= delta;
             if (deathTimer <= 0f) {
                 corpse.setPosition(sprite.getX(), sprite.getY() - 10);
@@ -598,32 +603,52 @@ public class Player {
      * Малює HUD-полоску стаміни у верхній частині екрана.
      * @param camera камера для HUD
      */
-    public void drawStaminaBar(OrthographicCamera camera) {
-        shapeRenderer.setProjectionMatrix(camera.combined);
+    public void drawStaminaBar(SpriteBatch batch, OrthographicCamera camera) {
 
-        float maxWidth = 200f;
-        float height = 20f;
+        int index = (int) ((100f - stamina) / 25f);
+        index = Math.min(Math.max(index, 0), 4); // захист від виходу за межі
+
+        Texture staminaTexture = staminaStages[index];
+
+        float width = staminaTexture.getWidth();
+        float height = staminaTexture.getHeight();
 
         float x = camera.position.x - camera.viewportWidth / 2 + 20;
-        float y = camera.position.y + camera.viewportHeight / 2 - 40;
+        float y = camera.position.y + camera.viewportHeight / 2 - height - 20;
 
-        float staminaRatio = stamina / 100f;
-
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        shapeRenderer.setColor(Color.LIGHT_GRAY);
-        shapeRenderer.rect(x, y, maxWidth, height);
-
-        shapeRenderer.setColor(Color.YELLOW);
-        shapeRenderer.rect(x, y, maxWidth * staminaRatio, height);
-
-        shapeRenderer.end();
+        batch.begin();
+        batch.draw(staminaTexture, x, y);
+        batch.end();
     }
+
+    /**
+     * Завантажує текстури індикатора витривалості.
+     */
+    public void loadStaminaTextures() {
+        staminaStages = new Texture[6];
+        for (int i = 0; i < 6; i++) {
+            staminaStages[i] = new Texture(Gdx.files.internal("player/staminaAnimation/stamina-" + (i + 1) + ".png"));
+        }
+    }
+
+    /**
+     * Повертає текстуру відповідно до поточного рівня витривалості.
+     *
+     * @return текстура витривалості
+     */
+    public Texture getStaminaFrame() {
+        int index = Math.min((int)((100f - stamina) / 20f), 5); // 0 до 5
+        return staminaStages[index];
+    }
+
 
     /**
      * Звільняє ресурси
      */
     public void dispose(){
+        for (Texture texture : staminaStages) {
+            texture.dispose();
+        }
     }
 
     /**

@@ -91,22 +91,23 @@ public class GameScreen implements Screen {
 
         switch (levelId) {
             case "levelId-1":
-                gameMap = new TiledGameMap();
+                gameMap = new TiledGameMap("maps/level1/map.tmx");
                 respawnX = 950;
                 respawnY = 400;
-                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                endOfTheLevel = new Rectangle(23420, 800, 60, 130);
                 break;
             case "levelId-2":
-                gameMap = new TiledGameMap();
+                gameMap = new TiledGameMap("maps/level2/map.tmx");
                 respawnX = 950;
                 respawnY = 400;
                 endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
                 break;
             case "levelId-3":
-                gameMap = new TiledGameMap();
+                gameMap = new TiledGameMap("maps/level3/map.tmx");
                 respawnX = 950;
-                respawnY = 400;
-                endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
+                respawnY = 4850;
+
+                endOfTheLevel = new Rectangle(14900, 4640, 60, 130);
                 break;
 
             default:
@@ -117,9 +118,8 @@ public class GameScreen implements Screen {
         crumblingBlocks = gameMap.getCrumblingBlocks();
         spikes = gameMap.getSpikes();
 
-        endOfTheLevel = new Rectangle(27005, 1025, 60, 130);
-
         player = new Player(this::incDeath, respawnX, respawnY);
+        player.loadStaminaTextures();
         MusicManager.init();
     }
 
@@ -279,11 +279,13 @@ public class GameScreen implements Screen {
             font.draw(game.batch, "Смертей: " + deathCount, camera.position.x + viewport.getWorldWidth() / 3, camera.position.y + viewport.getWorldHeight()/2 - 60);
         }
 
+        Texture staminaFrame = player.getStaminaFrame();
+        float staminaX = camera.position.x - camera.viewportWidth / 2 + 20;
+        float staminaY = camera.position.y + camera.viewportHeight / 2 - 60;
+
+        game.batch.draw(staminaFrame, staminaX, staminaY, 215, 44);
+
         game.batch.end();
-
-        player.drawStaminaBar(camera);
-
-        //drawEndOfTheLevel();
 
         if (isPaused) {
             pauseStage.act(delta);
@@ -291,19 +293,6 @@ public class GameScreen implements Screen {
         }
     }
 
-    /**
-     *
-     */
-    @Deprecated
-    private void drawEndOfTheLevel(){
-        ShapeRenderer shapeRenderer = new ShapeRenderer();
-        shapeRenderer.setProjectionMatrix(camera.combined);
-        shapeRenderer.begin(ShapeRenderer.ShapeType.Line);
-        shapeRenderer.setColor(Color.GREEN);
-        shapeRenderer.rect(endOfTheLevel.x, endOfTheLevel.y, endOfTheLevel.width, endOfTheLevel.height);
-        shapeRenderer.end();
-        shapeRenderer.dispose();
-    }
 
     private void finishLevel() {
         saveDeath();
@@ -321,7 +310,6 @@ public class GameScreen implements Screen {
         TextureRegion currentPlayerFrame = player.getFrame(delta, isPaused);
         game.batch.draw(currentPlayerFrame, player.sprite.getX(), player.sprite.getY(), player.sprite.getWidth(), player.sprite.getHeight());
 
-        // Відображення зникаючих блоків
         for (CrumblingBlock block : gameMap.getCrumblingBlocks()) {
 
             if (!block.isDestroyed()) {

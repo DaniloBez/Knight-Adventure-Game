@@ -29,14 +29,14 @@ public class Assets {
         manager.load("skin/uiskin.json", Skin.class);
     }
 
-    public static TiledMap getLevel1(){
-        manager.load("maps/night_level/map.tmx", TiledMap.class);
+    public static TiledMap getLevel(String levelPath){
+        manager.load(levelPath, TiledMap.class);
         manager.finishLoading();
-        return manager.get("maps/night_level/map.tmx", TiledMap.class);
+        return manager.get(levelPath, TiledMap.class);
     }
 
-    public static void unloadLevel1(){
-        manager.unload("maps/night_level/map.tmx");
+    public static void unloadLevel(String levelPath){
+        manager.unload( levelPath);
     }
 
     public static void finishLoading() {
