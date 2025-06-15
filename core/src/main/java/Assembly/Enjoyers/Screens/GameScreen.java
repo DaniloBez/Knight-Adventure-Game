@@ -118,6 +118,7 @@ public class GameScreen implements Screen {
         spikes = gameMap.getSpikes();
 
         player = new Player(this::incDeath, respawnX, respawnY);
+        player.loadStaminaTextures();
         MusicManager.init();
     }
 
@@ -276,9 +277,15 @@ public class GameScreen implements Screen {
             font.draw(game.batch, "Смертей: " + deathCount, camera.position.x + viewport.getWorldWidth() / 3, camera.position.y + viewport.getWorldHeight()/2 - 60);
         }
 
+        Texture staminaFrame = player.getStaminaFrame();
+        float staminaX = camera.position.x - camera.viewportWidth / 2 + 20;
+        float staminaY = camera.position.y + camera.viewportHeight / 2 - 60;
+
+        game.batch.draw(staminaFrame, staminaX, staminaY, 215, 44);
+
         game.batch.end();
 
-        player.drawStaminaBar(camera);
+
 
         drawEndOfTheLevel();
 
